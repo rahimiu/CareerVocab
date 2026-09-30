@@ -1,0 +1,627 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2563eb">
+<meta name="description" content="CareerVocab — vocabulary learning and job circulars">
+<meta name="application-name" content="CareerVocab">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/icon-192.png">
+<title>CareerVocab</title>
+<style>
+
+</style>
+</head>
+<body>
+<div class="app">
+<header class="top">
+  <div class="brand">Career<span>Vocab</span></div>
+  <div class="top-right"><div class="pill">⭐ <span id="points">0</span></div><button class="icon" onclick="toggleTheme()" aria-label="Theme">☾</button></div>
+</header>
+<main id="main"></main>
+<nav class="bottom">
+  <button class="nav active" data-nav="home" onclick="go('home')"><b>⌂</b>Home</button>
+  <button class="nav" data-nav="learn" onclick="go('books')"><b>📖</b>Learn</button>
+  <button class="nav" data-nav="starred" onclick="go('starred')"><b>☆</b>Starred</button>
+  <button class="nav" data-nav="jobs" onclick="go('jobs')"><b>💼</b>Jobs</button>
+  <button class="nav" data-nav="test" onclick="go('test')"><b>📝</b>Test</button>
+  <button class="nav" data-nav="profile" onclick="go('profile')"><b>♙</b>Profile</button>
+</nav>
+<div id="toast" class="toast"></div>
+</div>
+<script type="text/javascript">const DATA={
+ categories:[
+  {id:'vocabulary',name:'Vocabulary',type:'Vocabulary'},
+  {id:'ows',name:'One Word Substitution',type:'One Word Substitution'},
+  {id:'spelling',name:'Spelling',type:'Spelling'}
+ ],
+ content:[
+  {id:'w1',category:'vocabulary',contentType:'Vocabulary',book:'ws1',quiz:1,prompt:'Aberration',answer:'Aberration',meaning:'স্বাভাবিক অবস্থা থেকে বিচ্যুতি',syn:'Deviation • Anomaly',ant:'Conformity • Normality',mn:'A bear’s ration is unusual — an aberration.',sentence:'The delay was an aberration.',options:'Agreement|Improvement|Permission'},
+  {id:'w2',category:'vocabulary',contentType:'Vocabulary',book:'ws1',quiz:1,prompt:'Abolish',answer:'Abolish',meaning:'বিলুপ্ত করা',syn:'Eliminate • End',ant:'Establish • Create',mn:'A ball is finished — abolish it.',sentence:'The law was abolished.',options:'Approve|Improve|Permit'},
+  {id:'w3',category:'vocabulary',contentType:'Vocabulary',book:'ws1',quiz:1,prompt:'Abstain',answer:'Abstain',meaning:'বিরত থাকা',syn:'Refrain • Avoid',ant:'Participate • Engage',mn:'Stay away from the action: abstain.',sentence:'He chose to abstain from voting.',options:'Participate|Engage|Support'},
+  {id:'w4',category:'vocabulary',contentType:'Vocabulary',book:'ws1',quiz:1,prompt:'Acumen',answer:'Acumen',meaning:'তীক্ষ্ণ বিচারবুদ্ধি',syn:'Insight • Shrewdness',ant:'Foolishness • Ignorance',mn:'Acumen sounds like “acute mind”.',sentence:'Her business acumen impressed everyone.',options:'Confusion|Weakness|Carelessness'},
+  {id:'w5',category:'vocabulary',contentType:'Vocabulary',book:'ws1',quiz:1,prompt:'Adversity',answer:'Adversity',meaning:'দুর্দশা বা প্রতিকূলতা',syn:'Hardship • Misfortune',ant:'Prosperity • Advantage',mn:'Adversity = adverse conditions.',sentence:'He remained calm during adversity.',options:'Prosperity|Advantage|Comfort'},
+  {id:'w6',category:'vocabulary',contentType:'Vocabulary',book:'ws1',quiz:1,prompt:'Alleviate',answer:'Alleviate',meaning:'লাঘব করা',syn:'Relieve • Ease',ant:'Aggravate • Worsen',mn:'A little “levity” can alleviate stress.',sentence:'The medicine helped alleviate the pain.',options:'Aggravate|Worsen|Intensify'},
+  {id:'w7',category:'vocabulary',contentType:'Vocabulary',book:'ws1',quiz:1,prompt:'Ambiguous',answer:'Ambiguous',meaning:'দ্ব্যর্থক বা অস্পষ্ট',syn:'Unclear • Vague',ant:'Clear • Explicit',mn:'Two meanings can make a statement ambiguous.',sentence:'His answer was ambiguous.',options:'Clear|Certain|Explicit'},
+  {id:'w8',category:'vocabulary',contentType:'Vocabulary',book:'ws1',quiz:1,prompt:'Benevolent',answer:'Benevolent',meaning:'দয়ালু বা পরোপকারী',syn:'Kind • Charitable',ant:'Cruel • Malevolent',mn:'Benevolent = being kind-hearted.',sentence:'The benevolent donor helped the school.',options:'Cruel|Selfish|Hostile'},
+  {id:'w9',category:'vocabulary',contentType:'Vocabulary',book:'ws1',quiz:1,prompt:'Candid',answer:'Candid',meaning:'খোলামেলা ও অকপট',syn:'Frank • Honest',ant:'Deceptive • Guarded',mn:'Candid people speak candidly.',sentence:'She gave a candid answer.',options:'Deceptive|Guarded|Secretive'},
+  {id:'w10',category:'vocabulary',contentType:'Vocabulary',book:'ws1',quiz:1,prompt:'Concur',answer:'Concur',meaning:'একমত হওয়া',syn:'Agree • Consent',ant:'Disagree • Dissent',mn:'Concur = come together in opinion.',sentence:'I concur with your conclusion.',options:'Disagree|Reject|Dissent'},
+  {id:'w11',category:'vocabulary',contentType:'Vocabulary',book:'ws2',quiz:1,prompt:'Diligent',answer:'Diligent',meaning:'পরিশ্রমী ও অধ্যবসায়ী',syn:'Hardworking • Industrious',ant:'Lazy • Negligent',mn:'Diligent workers do things diligently.',sentence:'She is a diligent student.',options:'Lazy|Negligent|Careless'},
+  {id:'w12',category:'vocabulary',contentType:'Vocabulary',book:'ws2',quiz:1,prompt:'Eloquent',answer:'Eloquent',meaning:'বাকপটু ও প্রাঞ্জল',syn:'Expressive • Articulate',ant:'Inarticulate • Tongue-tied',mn:'Eloquent speech flows elegantly.',sentence:'He delivered an eloquent speech.',options:'Inarticulate|Unclear|Silent'},
+  {id:'w13',category:'vocabulary',contentType:'Vocabulary',book:'gre333',quiz:1,prompt:'Ephemeral',answer:'Ephemeral',meaning:'ক্ষণস্থায়ী',syn:'Fleeting • Transient',ant:'Permanent • Enduring',mn:'Ephemeral = exists for a short time.',sentence:'Fame can be ephemeral.',options:'Permanent|Enduring|Lasting'},
+  {id:'w14',category:'vocabulary',contentType:'Vocabulary',book:'gre333',quiz:1,prompt:'Frugal',answer:'Frugal',meaning:'মিতব্যয়ী',syn:'Thrifty • Economical',ant:'Wasteful • Extravagant',mn:'Frugal people avoid waste.',sentence:'He is frugal with money.',options:'Wasteful|Extravagant|Lavish'},
+  {id:'w15',category:'vocabulary',contentType:'Vocabulary',book:'gre333',quiz:1,prompt:'Lucid',answer:'Lucid',meaning:'স্পষ্ট ও সহজবোধ্য',syn:'Clear • Intelligible',ant:'Confusing • Obscure',mn:'Lucid writing lets light into an idea.',sentence:'The explanation was lucid.',options:'Confusing|Obscure|Unclear'},
+  {id:'w16',category:'vocabulary',contentType:'Vocabulary',book:'ws1',quiz:1,prompt:'Brevity',answer:'Brevity',meaning:'সংক্ষিপ্ততা',syn:'Conciseness • Shortness',ant:'Length • Verbosity',mn:'Brevity = brief and short.',sentence:'The report is valued for its brevity.',options:'Length|Verbosity|Expansion'},
+  {id:'w17',category:'vocabulary',contentType:'Vocabulary',book:'ws1',quiz:1,prompt:'Coerce',answer:'Coerce',meaning:'জোর করে বাধ্য করা',syn:'Compel • Force',ant:'Persuade • Encourage',mn:'Coerce sounds like forcing a course of action.',sentence:'They tried to coerce him into signing.',options:'Persuade|Encourage|Invite'},
+  {id:'w18',category:'vocabulary',contentType:'Vocabulary',book:'ws2',quiz:1,prompt:'Cumbersome',answer:'Cumbersome',meaning:'ভারী ও ব্যবহারে অসুবিধাজনক',syn:'Awkward • Unwieldy',ant:'Convenient • Handy',mn:'A cumbersome bag is hard to carry.',sentence:'The old system was cumbersome.',options:'Convenient|Handy|Simple'},
+  {id:'w19',category:'vocabulary',contentType:'Vocabulary',book:'ws2',quiz:1,prompt:'Impartial',answer:'Impartial',meaning:'নিরপেক্ষ',syn:'Fair • Unbiased',ant:'Biased • Prejudiced',mn:'Impartial means no partiality.',sentence:'A judge should remain impartial.',options:'Biased|Prejudiced|Unfair'},
+  {id:'w20',category:'vocabulary',contentType:'Vocabulary',book:'gre333',quiz:1,prompt:'Pragmatic',answer:'Pragmatic',meaning:'বাস্তবভিত্তিক',syn:'Practical • Realistic',ant:'Idealistic • Impractical',mn:'Pragmatic people focus on what works.',sentence:'She took a pragmatic approach.',options:'Idealistic|Impractical|Dreamy'},
+  {id:'w21',category:'vocabulary',contentType:'Vocabulary',book:'gre333',quiz:1,prompt:'Resilient',answer:'Resilient',meaning:'প্রতিকূলতা কাটিয়ে উঠতে সক্ষম',syn:'Strong • Adaptable',ant:'Fragile • Vulnerable',mn:'A resilient person bounces back.',sentence:'The resilient team recovered quickly.',options:'Fragile|Vulnerable|Weak'},
+  {id:'w22',category:'vocabulary',contentType:'Vocabulary',book:'ws1',quiz:2,prompt:'Tenacious',answer:'Tenacious',meaning:'দৃঢ়প্রতিজ্ঞ ও অধ্যবসায়ী',syn:'Persistent • Determined',ant:'Fickle • Yielding',mn:'Tenacious people hold on tightly to goals.',sentence:'Her tenacious effort paid off.',options:'Fickle|Yielding|Uncertain'},
+  {id:'w23',category:'vocabulary',contentType:'Vocabulary',book:'ws2',quiz:2,prompt:'Vigilant',answer:'Vigilant',meaning:'সতর্ক ও সজাগ',syn:'Watchful • Alert',ant:'Careless • Negligent',mn:'Vigilant people stay visibly alert.',sentence:'Security guards remained vigilant.',options:'Careless|Negligent|Distracted'},
+  {id:'w24',category:'vocabulary',contentType:'Vocabulary',book:'gre333',quiz:2,prompt:'Ubiquitous',answer:'Ubiquitous',meaning:'সর্বত্র উপস্থিত',syn:'Omnipresent • Everywhere',ant:'Rare • Scarce',mn:'Ubiquitous = found everywhere.',sentence:'Smartphones are ubiquitous today.',options:'Rare|Scarce|Limited'},
+  {id:'w25',category:'vocabulary',contentType:'Vocabulary',book:'ws2',quiz:2,prompt:'Meticulous',answer:'Meticulous',meaning:'অত্যন্ত যত্নশীল ও খুঁতখুঁতে',syn:'Careful • Thorough',ant:'Careless • Sloppy',mn:'Meticulous people check every tiny detail.',sentence:'He is meticulous about his work.',options:'Careless|Sloppy|Hasty'}
+ ],
+ books:[
+  {id:'ws1',name:'Word Smart 1',type:'Vocabulary',status:'Active'},
+  {id:'ws2',name:'Word Smart 2',type:'Vocabulary',status:'Active'},
+  {id:'gre333',name:'GRE 333',type:'Vocabulary',status:'Active'}
+ ],
+ jobs:[
+  {id:'j1',title:'Sample Bank Officer',org:'Sample Organization',cat:'Bank',loc:'Dhaka',desc:'Demo job circular for the prototype.',req:'Bachelor degree; relevant skills.',apply:'#',published:'2026-09-20',deadline:'2026-10-10'},
+  {id:'j2',title:'Sample Executive',org:'Sample Company',cat:'Private',loc:'Chattogram',desc:'Demo private-sector circular.',req:'Graduate; communication skills.',apply:'#',published:'2026-09-25',deadline:'2026-10-05'}
+ ],
+ notices:[{id:'n1',title:'Welcome to CareerVocab',category:'App',description:'Connect your Google Sheet to publish live notices.',published:'2026-09-30',expiry:'2099-12-31',priority:'Normal',link:'',active:true}],
+ ads:[],
+ settings:[{Key:'app_version',Value:'1.0.0'},{Key:'update_url',Value:''},{Key:'update_message',Value:'A new CareerVocab version is available.'},{Key:'force_update',Value:'false'},{Key:'ads_enabled',Value:'false'},{Key:'banner_ads_enabled',Value:'false'},{Key:'popup_ads_enabled',Value:'false'},{Key:'random_word_enabled',Value:'true'},{Key:'random_word_frequency',Value:'session'}]
+};
+function normalizeData(){
+ DATA.content=(DATA.content||[]).map((x,i)=>{const c=(x.category||'vocabulary').toString(); const type=x.contentType||c; const prompt=x.prompt||x.word||x.question||x.term||''; const answer=x.answer||x.word||x.correct||x.meaning||''; return {...x,id:String(x.id||('item'+i)),category:c,contentType:type,book:String(x.book||'General'),quiz:Number(x.quiz||1),prompt,answer,word:x.word||prompt,meaning:x.meaning||'',syn:x.syn||x.synonym||'',ant:x.ant||x.antonym||'',mn:x.mn||x.mnemonic||'',sentence:x.sentence||x.example||'',options:x.options||''};});
+ DATA.words=DATA.content.filter(x=>String(x.contentType).toLowerCase()==='vocabulary');
+ DATA.books=(DATA.books||[]).map((b,i)=>({id:String(b.id||b.ID||('book'+i)),name:String(b.name||b.Name||''),type:String(b.type||b.Type||'Vocabulary'),status:String(b.status||b.Status||'Active')})).filter(b=>b.name);
+ DATA.notices=Array.isArray(DATA.notices)?DATA.notices:[]; DATA.ads=Array.isArray(DATA.ads)?DATA.ads:[]; DATA.settings=Array.isArray(DATA.settings)?DATA.settings:[];
+ if(!DATA.books.length){const seen=new Set(); DATA.content.forEach(x=>{const key=x.category+'|'+x.book;if(!seen.has(key)){seen.add(key);DATA.books.push({id:key,name:x.book,type:x.contentType,status:'Active'});}});}
+}
+normalizeData();
+
+let state=JSON.parse(localStorage.getItem('cv_state')||'null')||{points:0,streak:0,stars:[],mastery:{},completed:{},lastBook:null,lastQuiz:null,testsTaken:0,testQuestions:0,testCorrect:0,testBestAccuracy:0};
+state={points:0,streak:0,stars:[],mastery:{},completed:{},lastBook:null,lastQuiz:null,testsTaken:0,testQuestions:0,testCorrect:0,testBestAccuracy:0,...state};
+let route='home', currentWords=[], currentIndex=0, tab='learn', flipped=false, selected=null, answered=false, quizScore=0, quizWrong=[], quizResults=[], quizIndex=0, quizStarted=false;
+let testWords=[], testIndex=0, testScore=0, testWrong=[], testResults=[], testBookKey='', testBookName='', testSelectedQuizzes=[], testReviewMode=false;
+function save(){localStorage.setItem('cv_state',JSON.stringify(state));document.getElementById('points').textContent=state.points}
+function toast(s){const t=document.getElementById('toast');t.textContent=s;t.classList.add('show');clearTimeout(window._toast);window._toast=setTimeout(()=>t.classList.remove('show'),1600)}
+function go(r){route=r; if(r==='books')renderBooks(); else if(r==='starred')renderStarred(); else if(r==='jobs')renderJobs(); else if(r==='test')renderTestCenter(); else if(r==='profile')renderProfile(); else renderHome()}
+function updateNav(){document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('active',x.dataset.nav===route||(route==='books'&&x.dataset.nav==='learn')))}
+function bookIdFor(b){return String(b.id||b.name)}
+function bookWords(b){const id=bookIdFor(b);return DATA.content.filter(w=>String(w.book)===id||String(w.book)===String(b.name))}
+function renderHome(){
+const books=DATA.books.filter(b=>String(b.status).toLowerCase()==='active');
+const cards=books.map(b=>{const ws=bookWords(b),done=ws.filter(w=>state.mastery[w.id]).length,p=ws.length?Math.round(done/ws.length*100):0,quizCount=new Set(ws.map(w=>w.quiz)).size;return `<div class="card book-card"><div class="book-info"><h3>📚 ${b.name}</h3><p>${quizCount||0} quiz • ${ws.length} words</p><div class="progress"><i style="width:${p}%"></i></div></div><button class="btn primary" onclick="openBook('${escapeJs(bookIdFor(b))}')">Open</button></div>`}).join('');
+document.getElementById('main').innerHTML=`<section class="screen">
+<div class="hero"><h1>Learn smarter with CareerVocab</h1><p>Build your vocabulary step by step with Word Smart and GRE practice.</p><button class="btn" style="background:#fff;color:#2563eb" onclick="go('books')">Start Learning →</button></div>
+<div class="section-title"><h2>Vocabulary Books</h2><span class="muted">${books.length} books</span></div><div class="list">${cards||'<div class="card empty">No books available yet.</div>'}</div>
+<div class="section-title"><h2>Your Progress</h2></div><div class="card statgrid"><div class="stat"><strong>${Object.keys(state.mastery).length}</strong><span>Words learned</span></div><div class="stat"><strong>${Object.keys(state.completed).length}</strong><span>Quizzes completed</span></div><div class="stat"><strong>${state.points}</strong><span>Points</span></div><div class="stat"><strong>${state.streak}</strong><span>Day streak</span></div></div><div id="homeAdSlot"></div></section>`;
+renderAdSlot('homeAdSlot','home_bottom');updateNav()}
+
+function openCategory(category){document.getElementById('main').innerHTML=`<section class=\"screen\"><div class=\"section-title\"><h2>${DATA.categories.find(c=>c.id===category)?.name||'Library'}</h2><span class=\"muted\">Choose a book</span></div><div class=\"list\">${DATA.books.filter(b=>b.category===category).map(b=>{const ws=DATA.content.filter(w=>w.category===category&&w.book===b.name);const done=ws.filter(w=>state.mastery[w.id]).length,p=ws.length?Math.round(done/ws.length*100):0;const quizCount=new Set(ws.map(w=>w.quiz)).size;return `<div class=\"card book-card\"><div class=\"book-info\"><h3>${b.name}</h3><p>${quizCount} quiz • ${ws.length} items</p><div class=\"progress\"><i style=\"width:${p}%\"></i></div></div><button class=\"btn primary\" onclick=\"openBook('${escapeJs(b.name)}',1,'learn','${category}')\">Open</button></div>`}).join('')}</div></section>`;updateNav()}
+function renderBooks(){
+const books=DATA.books.filter(b=>String(b.status).toLowerCase()==='active');
+document.getElementById('main').innerHTML=`<section class="screen"><div class="section-title"><h2>Learning Library</h2><span class="muted">${books.length} books</span></div><div class="list">${books.map(b=>{const ws=bookWords(b),done=ws.filter(w=>state.mastery[w.id]).length,p=ws.length?Math.round(done/ws.length*100):0,quizCount=new Set(ws.map(w=>w.quiz)).size;return `<div class="card book-card"><div class="book-info"><h3>${b.name}</h3><p>${quizCount||0} quiz • ${ws.length} words</p><div class="progress"><i style="width:${p}%"></i></div></div><button class="btn primary" onclick="openBook('${escapeJs(bookIdFor(b))}')">Choose Quiz</button></div>`}).join('')||'<div class="card empty">No books available yet.</div>'}</div></section>`;updateNav()}
+
+function openBook(book,quizNo=null,startTab='learn',category){
+const b=DATA.books.find(x=>bookIdFor(x)===String(book)||String(x.name)===String(book));
+const bookKey=b?bookIdFor(b):String(book);
+const cat=category||b?.category||DATA.content.find(x=>String(x.book)===bookKey||String(x.book)===String(b?.name))?.category||'vocabulary';
+const ws=DATA.content.filter(w=>(String(w.book)===bookKey||String(w.book)===String(b?.name))&&(!category||w.category===cat));
+if(quizNo===null){renderQuizPicker(b||{id:bookKey,name:String(book)},ws);return}
+currentWords=ws.filter(w=>w.quiz===Number(quizNo));currentIndex=0;tab=startTab;flipped=false;selected=null;answered=false;quizScore=0;quizWrong=[];quizResults=[];quizIndex=0;quizStarted=(startTab==='quiz');state.lastBook=bookKey;state.lastQuiz=quizNo;save();renderWorkspace()}
+function renderQuizPicker(b,ws){
+const quizzes=[...new Set(ws.map(w=>Number(w.quiz)||1))].sort((a,z)=>a-z);
+const cards=quizzes.map(q=>{const words=ws.filter(w=>Number(w.quiz)===q),done=words.filter(w=>state.mastery[w.id]).length,p=words.length?Math.round(done/words.length*100):0,key=`${words[0]?.category||'vocabulary'}-${bookIdFor(b)}-${q}`,completed=!!state.completed[key];return `<button class="card action" onclick="openBook('${escapeJs(bookIdFor(b))}',${q},'learn')"><strong>Quiz ${String(q).padStart(2,'0')}</strong><span>${words.length} words • ${p}% learned${completed?' • ✓ Completed':''}</span><div class="progress" style="margin-top:10px"><i style="width:${p}%"></i></div></button>`}).join('');
+document.getElementById('main').innerHTML=`<section class="screen"><div class="section-title"><div><h2>${b.name}</h2><span class="muted">Choose a quiz to start learning</span></div><button class="btn secondary" onclick="go('books')">← Books</button></div><div class="list">${cards||'<div class="card empty">No quizzes available for this book.</div>'}</div></section>`;updateNav()}
+
+function word(){return currentWords[currentIndex]}
+function renderWorkspace(){if(!currentWords.length)return;const w=word(),b=DATA.books.find(x=>x.name===w.book&&x.category===w.category)||{name:w.book};const main=document.getElementById('main');main.innerHTML=`<section class=\"workspace workspace-screen\"><div class=\"ws-head\"><div class=\"ws-title\"><h2>${b.name} • Quiz ${String(w.quiz).padStart(2,'0')}</h2><div class=\"counter\">${currentIndex+1} / ${currentWords.length} &nbsp; ⭐ ${state.points}</div></div><div class=\"progress\"><i style=\"width:${((currentIndex+1)/currentWords.length)*100}%\"></i></div><div class=\"tabs\"><button class=\"tab ${tab==='learn'?'active':''}\" onclick=\"setTab('learn')\">Learn</button><button class=\"tab ${tab==='flash'?'active':''}\" onclick=\"setTab('flash')\">Flashcards</button><button class=\"tab ${tab==='quiz'?'active':''}\" onclick=\"setTab('quiz')\">Quiz</button></div></div><div class=\"ws-body\" id=\"wsbody\"></div></section>`;renderTab();updateNav()}
+function setTab(t){tab=t;flipped=false;selected=null;answered=false;if(t==='quiz'){quizIndex=0;quizScore=0;quizWrong=[];quizResults=[];quizStarted=true}renderWorkspace()}
+function star(id){const i=state.stars.indexOf(id);if(i<0){state.stars.push(id);toast('Added to Starred ⭐')}else{state.stars.splice(i,1);toast('Removed from Starred')}save();renderTab()}
+function speak(text){if('speechSynthesis' in window){speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='en-US';speechSynthesis.speak(u)}}
+function know(){const w=word();const key=String(w.id);if(!state.known)state.known={};if(state.known[key]){toast('Already marked as known');document.querySelector('.know')?.classList.add('pop');return}state.known[key]=true;state.mastery[w.id]=Math.max(state.mastery[w.id]||0,1);state.points+=2;save();toast('Great! +2 points');document.querySelector('.know')?.classList.add('pop');setTimeout(nextWord,450)}
+function nextWord(){if(currentIndex<currentWords.length-1){currentIndex++;flipped=false;selected=null;answered=false;renderWorkspace()}else{const key=`${word().category}-${word().book}-${word().quiz}`;if(!state.completed[key]){state.completed[key]=true;state.points+=20;save();toast('Quiz completed! +20 points')}renderComplete()}}
+function prevWord(){if(currentIndex>0){currentIndex--;flipped=false;selected=null;answered=false;renderWorkspace()}}
+function renderTab(){const w=word(),body=document.getElementById('wsbody'),starred=state.stars.includes(w.id),type=(w.contentType||'Vocabulary').toLowerCase();if(tab==='learn'){if(type==='vocabulary') body.innerHTML=`<div class="word-card learn-card"><div class="word-top learn-top"><button class="learn-star" onclick="star('${w.id}')">${starred?'★':'☆'}</button><button class="learn-speaker" onclick="speak('${escapeJs(w.prompt)}')">🔊</button></div><div class="word">${w.prompt}</div><div class="meaning">${w.meaning}</div><div class="chips"><div class="info"><b>Synonyms</b>${w.syn||'—'}</div><div class="info"><b>Antonyms</b>${w.ant||'—'}</div><div class="info mnemonic"><b>💡 Remember This</b>${w.mn||'—'}</div><div class="info example"><b>Example</b>${w.sentence||'—'} ${w.sentence?`<button onclick="speak('${escapeJs(w.sentence)}')" style="background:none">🔊</button>`:''}</div></div><div class="ws-actions"><button class="know" onclick="know()">✓ I Know It</button></div><div class="ws-foot"><button onclick="prevWord()">← Previous</button><button onclick="nextWord()">Next →</button></div></div>`;else body.innerHTML=`<div class="word-card"><div class="word-top"><div></div><div class="word-actions"><button onclick="star('${w.id}')">${starred?'★':'☆'}</button><button onclick="speak('${escapeJs(w.prompt)}')">🔊</button></div></div><div class="muted" style="text-align:center">${w.contentType}</div><div class="question">${w.prompt}</div><div class="meaning">Answer: ${w.answer}</div>${w.meaning?`<div class="info"><b>Bangla Meaning</b>${w.meaning}</div>`:''}${w.mn?`<div class="info mnemonic"><b>💡 Remember</b>${w.mn}</div>`:''}${w.explanation?`<div class="info example"><b>Explanation</b>${w.explanation}</div>`:''}<div class="ws-actions"><button class="know" onclick="know()">✓ I Know It</button></div><div class="ws-foot"><button onclick="prevWord()">← Previous</button><button onclick="nextWord()">Next →</button></div></div>`;return}if(tab==='flash'){renderFlash(w,body);return}renderQuiz(w,body)}
+function renderFlash(w,body){
+  const starred=state.stars.includes(w.id);
+  body.innerHTML=`<div class="flash"><div class="flip ${flipped?'flipped':''}" onclick="flipCard()">
+    <div class="face front">
+      <div class="word-top"><button onclick="event.stopPropagation();star('${w.id}')" class="icon">${starred?'★':'☆'}</button><button onclick="event.stopPropagation();speak('${escapeJs(w.prompt)}')" class="icon">🔊</button></div>
+      <div class="front-word">${w.prompt}</div><div class="tap">Tap to Flip</div>
+      <div class="flash-bottom" onclick="event.stopPropagation()"><button class="know" onclick="know()">✓ I Know It</button></div>
+      <div class="ws-foot" onclick="event.stopPropagation()"><button onclick="prevWord()">← Previous</button><button onclick="nextWord()">Next →</button></div>
+    </div>
+    <div class="face back">
+      <div class="word-top"><button onclick="event.stopPropagation();star('${w.id}')" class="icon">${starred?'★':'☆'}</button><button onclick="event.stopPropagation();speak('${escapeJs(w.prompt)}')" class="icon">🔊</button></div>
+      <div class="word flash-back-word">${w.prompt}</div>
+      <div class="meaning">${w.meaning||'—'}</div>
+      <div class="chips"><div class="info"><b>Synonyms</b>${w.syn||'—'}</div><div class="info"><b>Antonyms</b>${w.ant||'—'}</div></div>
+      <div class="flash-bottom" onclick="event.stopPropagation()"><button class="know" onclick="know()">✓ I Know It</button></div>
+      <div class="ws-foot" onclick="event.stopPropagation()"><button onclick="prevWord()">← Previous</button><button onclick="nextWord()">Next →</button></div>
+    </div>
+  </div></div>`
+}
+function flipCard(){flipped=!flipped;document.querySelector('.flip').classList.toggle('flipped',flipped)}
+function meaningOptions(w,pool){
+  const syn=String(w.syn||'').split(/[•,;]/).map(x=>x.trim()).filter(Boolean);
+  const ant=String(w.ant||'').split(/[•,;]/).map(x=>x.trim()).filter(Boolean);
+  const correct=syn[0]||String(w.answer||w.prompt||'').trim();
+  const source=[...(pool||[]),...(DATA.words||[])];
+  const distractors=[];
+  source.forEach(x=>{
+    String(x.syn||'').split(/[•,;]/).map(y=>y.trim()).filter(Boolean).forEach(y=>distractors.push(y));
+    String(x.ant||'').split(/[•,;]/).map(y=>y.trim()).filter(Boolean).forEach(y=>distractors.push(y));
+  });
+  ant.forEach(x=>distractors.push(x));
+  const unique=[]; const seen=new Set([correct.toLowerCase(),String(w.prompt||'').toLowerCase()]);
+  distractors.forEach(x=>{const k=x.toLowerCase();if(x&&!seen.has(k)){seen.add(k);unique.push(x)}});
+  const opts=[correct,...unique.slice(0,3)];
+  while(opts.length<4)opts.push(['Practical','Careless','Temporary','Clear'][opts.length-1]);
+  return opts.slice(0,4).sort(()=>Math.random()-.5);
+}
+function renderQuiz(w,body){
+  w=currentWords[quizIndex]||currentWords[0];
+  currentIndex=quizIndex;
+  const isV=(w.contentType||'Vocabulary').toLowerCase()==='vocabulary';
+  const correctAnswer=isV?(String(w.syn||'').split(/[•,;]/).map(x=>x.trim()).filter(Boolean)[0]||String(w.answer||'')):String(w.answer||'');
+  let opts=isV?meaningOptions(w,currentWords):(w.options||'').split('|').map(x=>x.trim()).filter(Boolean);
+  if(!opts.includes(correctAnswer))opts=[correctAnswer,...opts];
+  if(opts.length<4)opts=opts.concat(['Option A','Option B','Option C','Option D'].filter(x=>!opts.includes(x))).slice(0,4);
+  opts=opts.slice(0,4).sort(()=>Math.random()-.5);
+  const question=isV
+    ?`What does “${escapeHtml(w.prompt)}” mean?`
+    :`Choose the correct answer for:<br/><span style="font-size:.9em">${escapeHtml(w.prompt)}</span>`;
+  body.innerHTML=`<div class="word-card quiz-card">
+    <div class="quiz-qno">Question ${quizIndex+1} of ${currentWords.length}</div>
+    <div class="question">${question}</div>
+    <div class="options">${opts.map((c,i)=>`<button class="option" data-value="${escapeHtml(c)}" onclick="selectAnswer(this,'${escapeJs(c)}')"><span class="option-letter">${String.fromCharCode(65+i)}</span><span>${escapeHtml(c)}</span></button>`).join('')}</div>
+    <div id="feedback" class="feedback" aria-live="polite"></div>
+    <div class="ws-actions"><button id="continueBtn" class="btn primary" onclick="continueQuiz()" style="display:none">Continue →</button></div>
+  </div>`
+}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function escapeJs(s){return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'")}
+function selectAnswer(btn,val){
+  if(answered)return;
+  answered=true; selected=val;
+  const w=currentWords[quizIndex];
+  const isV=(w.contentType||'Vocabulary').toLowerCase()==='vocabulary';
+  const correctAnswer=isV?(String(w.syn||'').split(/[•,;]/).map(x=>x.trim()).filter(Boolean)[0]||String(w.answer||'')):String(w.answer||'');
+  const ok=selected===correctAnswer;
+  document.querySelectorAll('.option').forEach(x=>{x.disabled=true;if(x.dataset.value===correctAnswer)x.classList.add('correct');if(x===btn&&!ok)x.classList.add('wrong')});
+  if(ok){quizScore++;state.points+=10;state.mastery[w.id]=Math.max(Number(state.mastery[w.id]||0),1)}else{quizWrong.push(w.id)}
+  quizResults.push({id:w.id,word:w.prompt,selected:val,correct:correctAnswer,ok});
+  save();
+  const f=document.getElementById('feedback');
+  if(f){f.innerHTML=ok?'✓ Correct! <b>+10 points</b>':'✗ Not quite. The correct answer is <b>'+escapeHtml(correctAnswer)+'</b>';f.className='feedback '+(ok?'ok':'bad')+' answer-feedback'}
+  const next=document.getElementById('continueBtn');
+  if(next){next.style.display='inline-flex';next.textContent=quizIndex<currentWords.length-1?'Continue →':'See Results →'}
+}
+function continueQuiz(){
+  if(!answered)return;
+  if(quizIndex<currentWords.length-1){quizIndex++;answered=false;selected=null;renderTab()}
+  else{renderComplete()}
+}
+function openStar(id){const w=DATA.content.find(x=>x.id===id);currentWords=[w];currentIndex=0;tab='learn';renderWorkspace()}
+function renderStarred(){
+ const ids=Array.isArray(state.stars)?state.stars:[];
+ const list=ids.map(id=>DATA.content.find(w=>String(w.id)===String(id))).filter(Boolean);
+ const cards=list.map(w=>`<div class="card book-card"><div class="book-info"><h3>⭐ ${escapeHtml(w.prompt||w.word||w.answer||'Word')}</h3><p>${escapeHtml(w.meaning||'—')}</p></div><button class="btn primary" onclick="openStar('${escapeJs(w.id)}')">Open</button></div>`).join('');
+ document.getElementById('main').innerHTML=`<section class="screen"><div class="section-title"><h2>Starred Words</h2><span class="muted">${list.length} words</span></div><div class="list">${cards||'<div class="card empty"><h3>No starred words yet</h3><p>Tap ☆ on any word to save it here.</p></div>'}</div></section>`;
+ updateNav();
+}
+function openStarredMode(mode){
+ const ids=Array.isArray(state.stars)?state.stars:[];
+ const list=ids.map(id=>DATA.content.find(w=>String(w.id)===String(id))).filter(Boolean);
+ if(!list.length){toast('No starred words yet ⭐');return}
+ currentWords=list;currentIndex=0;tab=mode;flipped=false;selected=null;answered=false;
+ if(mode==='quiz'){quizIndex=0;quizScore=0;quizWrong=[];quizResults=[];quizStarted=true}
+ renderWorkspace();
+}
+
+function renderJobs(){let filter='all';document.getElementById('main').innerHTML=`<section class="screen"><div class="section-title"><h2>Jobs & Notices</h2></div><div class="notice-tabs"><button class="notice-tab active" id="jobsTab" onclick="setJobSection('jobs')">💼 Jobs</button><button class="notice-tab" id="noticesTab" onclick="setJobSection('notices')">🔔 Notices</button></div><div id="jobsSection"><input id="jobSearch" class="search" placeholder="Search jobs, organization or location..." oninput="filterJobs()"/><div class="filters">${['all','today','3days','7days','30days'].map(x=>`<button class="${filter===x?'active':''}" data-filter="${x}" onclick="setJobFilter('${x}')">${x==='all'?'All':x==='today'?'Today':x.replace('days',' days')}</button>`).join('')}</div><div id="jobList" class="list"></div></div><div id="noticesSection" style="display:none"><div id="noticeList" class="list"></div></div><div id="jobsAdSlot"></div></section>`;window._jobFilter=filter;window._jobSection='jobs';filterJobs();renderNotices();renderAdSlot('jobsAdSlot','jobs_bottom');updateNav()}
+function setJobSection(section){window._jobSection=section;document.getElementById('jobsSection').style.display=section==='jobs'?'':'none';document.getElementById('noticesSection').style.display=section==='notices'?'':'none';document.getElementById('jobsTab').classList.toggle('active',section==='jobs');document.getElementById('noticesTab').classList.toggle('active',section==='notices');if(section==='notices')renderNotices()}
+function setJobFilter(f){window._jobFilter=f;document.querySelectorAll('.filters button').forEach(b=>b.classList.toggle('active',b.dataset.filter===f));filterJobs()}
+function daysLeft(d){return Math.ceil((new Date(d+'T23:59:59')-new Date())/86400000)}
+function filterJobs(){const el=document.getElementById('jobList');if(!el)return;const q=(document.getElementById('jobSearch')?.value||'').toLowerCase(),f=window._jobFilter||'all';let jobs=DATA.jobs.slice().reverse().filter(j=>(j.title+j.org+j.loc+j.cat).toLowerCase().includes(q));if(f!=='all'){const max=f==='today'?0:Number(f.replace('days',''));jobs=jobs.filter(j=>daysLeft(j.deadline)>=0&&daysLeft(j.deadline)<=max)}el.innerHTML=jobs.length?jobs.map(j=>`<div class="card job"><h3>${escapeHtml(j.title)}</h3><div class="muted">${escapeHtml(j.org)}</div><div class="meta"><span class="tag">${escapeHtml(j.cat)}</span><span class="tag">${escapeHtml(j.loc)}</span></div><p>${escapeHtml(j.desc||'')}</p><div class="deadline">Deadline: ${escapeHtml(j.deadline)} (${Math.max(0,daysLeft(j.deadline))} days left)</div><div style="margin-top:10px"><button class="btn primary" onclick="showJobDetails('${escapeJs(j.id)}')">View Details</button> <a class="btn secondary" href="${escapeHtml(j.apply||'#')}" target="_blank" rel="noopener" style="display:inline-block;text-decoration:none">Apply</a></div></div>`).join(''):`<div class="card empty">No matching jobs.</div>`}
+function getJobImageList(j){let a=[];if(j&&j.image)a.push(j.image);if(j&&j.imageUrl)a.push(j.imageUrl);if(j&&j.circularImage)a.push(j.circularImage);if(j&&Array.isArray(j.images))a=a.concat(j.images);return [...new Set(a.filter(Boolean).map(String))]}
+function closeJobDetails(){const m=document.getElementById('jobDetailModal');if(m)m.remove()}
+function showJobDetails(jobId){const j=DATA.jobs.find(x=>String(x.id)===String(jobId));if(!j){toast('Job details not found');return}const imgs=getJobImageList(j);const req=j.req||j.requirements||'';const desc=j.details||j.description||j.desc||'';const imgHtml=imgs.map((u,i)=>`<div class="job-detail-section"><h3>📄 Circular ${imgs.length>1?i+1:''}</h3><img class="job-circular-image" src="${escapeHtml(u)}" alt="${escapeHtml(j.title||'Job circular')}" loading="lazy"/><div class="job-image-actions"><a class="btn secondary" href="${escapeHtml(u)}" target="_blank" rel="noopener">Open Image</a><a class="btn primary" href="${escapeHtml(u)}" download="${escapeHtml((j.title||'job-circular').replace(/[^a-z0-9]+/gi,'-').toLowerCase())}-${i+1}.jpg">⬇ Download Image</a></div></div>`).join('');const modal=document.createElement('div');modal.id='jobDetailModal';modal.className='job-detail-backdrop';modal.innerHTML=`<div class="job-detail-modal" role="dialog" aria-modal="true" aria-label="Job details"><div class="job-detail-head"><div><h2>${escapeHtml(j.title||'Job Details')}</h2><div class="job-detail-org">${escapeHtml(j.org||'')}</div></div><button class="job-detail-close" onclick="closeJobDetails()" aria-label="Close">×</button></div><div class="job-detail-grid"><div class="job-detail-item"><b>Category</b><span>${escapeHtml(j.cat||'—')}</span></div><div class="job-detail-item"><b>Location</b><span>${escapeHtml(j.loc||'—')}</span></div><div class="job-detail-item"><b>Published</b><span>${escapeHtml(j.published||'—')}</span></div><div class="job-detail-item"><b>Deadline</b><span>${escapeHtml(j.deadline||'—')}</span></div></div>${desc?`<div class="job-detail-section"><h3>📌 Description</h3><div class="detail-text">${escapeHtml(desc)}</div></div>`:''}${req?`<div class="job-detail-section"><h3>📋 Requirements / Details</h3><div class="detail-text">${escapeHtml(req)}</div></div>`:''}${imgHtml}${!desc&&!req&&!imgs.length?'<div class="job-detail-section"><p>No additional details available.</p></div>':''}<div class="job-detail-actions"><a class="btn primary" href="${escapeHtml(j.apply||'#')}" target="_blank" rel="noopener">Apply Now</a><button class="btn secondary" onclick="closeJobDetails()">Close</button></div></div>`;modal.addEventListener('click',e=>{if(e.target===modal)closeJobDetails()});document.body.appendChild(modal)}
+function renderNotices(){const el=document.getElementById('noticeList');if(!el)return;const today=new Date();const notices=DATA.notices.slice().reverse().filter(n=>String(n.active).toLowerCase()!=='false'&&(!n.expiry||new Date(n.expiry+'T23:59:59')>=today));el.innerHTML=notices.length?notices.map(n=>`<article class="card notice-card"><div class="notice-priority">${escapeHtml(n.priority||'Normal')} · ${escapeHtml(n.category||'Notice')}</div><h3 style="margin:5px 0">${escapeHtml(n.title||'Notice')}</h3><div class="notice-date">Published: ${escapeHtml(n.published||'')}</div><p style="margin-top:10px">${escapeHtml(n.description||'')}</p>${n.link?`<div class="notice-link"><a class="btn secondary" href="${escapeHtml(n.link)}" target="_blank" rel="noopener" style="display:inline-block;text-decoration:none">Open Notice</a></div>`:''}</article>`).join(''):`<div class="card empty">No active notices.</div>`}
+function renderTestCenter(){
+  const books=DATA.books.filter(b=>String(b.status).toLowerCase()==='active');
+  document.getElementById('main').innerHTML=`<section class="screen"><div class="section-title"><div><h2>Test Center</h2><span class="muted">Choose a book for your test</span></div></div><div class="test-book-grid">${books.map(b=>{const ws=bookWords(b),qs=[...new Set(ws.map(w=>Number(w.quiz)||1))].sort((a,z)=>a-z);return `<button class="card test-book" onclick="openTestBook('${escapeJs(bookIdFor(b))}')"><div><div class="book-name">📚 ${escapeHtml(b.name)}</div><div class="book-meta">${qs.length} quizzes • ${ws.length} questions</div></div><span>→</span></button>`}).join('')||'<div class="card empty">No active books available.</div>'}</div></section>`;
+  updateNav();
+}
+function openTestBook(book){
+  const b=DATA.books.find(x=>bookIdFor(x)===String(book)||String(x.name)===String(book));
+  if(!b){toast('Book not found');return}
+  testBookKey=bookIdFor(b); testBookName=b.name;
+  const ws=bookWords(b);const quizzes=[...new Set(ws.map(w=>Number(w.quiz)||1))].sort((a,z)=>a-z);
+  document.getElementById('main').innerHTML=`<section class="screen"><div class="section-title"><div><h2>${escapeHtml(b.name)}</h2><span class="muted">Select one or more quizzes</span></div><button class="btn secondary" onclick="go('test')">← Test Center</button></div><div class="card"><div class="test-quiz-list">${quizzes.map(q=>{const n=ws.filter(w=>Number(w.quiz)===q).length;return `<label class="test-quiz"><input type="checkbox" class="testQuizCheck" value="${q}" onchange="updateTestSelection()"/><div class="test-quiz-main"><strong>Quiz ${String(q).padStart(2,'0')}</strong><span>${n} questions</span></div></label>`}).join('')}</div><div class="test-summary"><div class="test-summary-row"><span>Selected</span><strong id="testSelectedCount">0 quizzes • 0 questions</strong></div><button id="startTestBtn" class="btn primary" style="width:100%" disabled onclick="startSelectedTest('${escapeJs(bookIdFor(b))}')">Start Test</button></div></div></section>`;
+  updateNav();
+}
+function updateTestSelection(){
+  const checks=[...document.querySelectorAll('.testQuizCheck')];const selected=checks.filter(c=>c.checked).map(c=>Number(c.value));
+  const b=DATA.books.find(x=>bookIdFor(x)===testBookKey)||DATA.books.find(x=>String(x.name)===testBookKey);const ws=b?bookWords(b):[];const count=ws.filter(w=>selected.includes(Number(w.quiz))).length;
+  const el=document.getElementById('testSelectedCount');if(el)el.textContent=`${selected.length} quiz${selected.length===1?'':'zes'} • ${count} question${count===1?'':'s'}`;
+  const btn=document.getElementById('startTestBtn');if(btn)btn.disabled=!selected.length;
+}
+function startSelectedTest(book){
+  const b=DATA.books.find(x=>bookIdFor(x)===String(book)||String(x.name)===String(book));if(!b)return;
+  const selected=[...document.querySelectorAll('.testQuizCheck:checked')].map(c=>Number(c.value)).filter(Number.isFinite);
+  if(!selected.length){toast('Select at least one quiz');return}
+  testBookKey=bookIdFor(b);testBookName=b.name;testSelectedQuizzes=selected;testReviewMode=false;
+  testWords=bookWords(b).filter(w=>selected.includes(Number(w.quiz)));testIndex=0;testScore=0;testWrong=[];testResults=[];
+  if(!testWords.length){toast('No questions available');return}
+  renderTestQuestion();
+}
+
+function renderTestQuestion(){
+  route='test';updateNav();const w=testWords[testIndex];const main=document.getElementById('main');
+  const isV=(w.contentType||'Vocabulary').toLowerCase()==='vocabulary';
+  const correctAnswer=isV?(String(w.syn||'').split(/[•,;]/).map(x=>x.trim()).filter(Boolean)[0]||String(w.answer||'')):String(w.answer||'');
+  let opts=isV?meaningOptions(w,testWords):(w.options||'').split('|').map(x=>x.trim()).filter(Boolean);
+  if(!opts.includes(correctAnswer))opts=[correctAnswer,...opts];
+  opts=opts.filter(x=>String(x).trim().toLowerCase()!==String(w.prompt||'').trim().toLowerCase());
+  opts=opts.slice(0,4);
+  while(opts.length<4){const filler=['Practical','Careless','Temporary','Clear'].find(x=>!opts.includes(x)&&x.toLowerCase()!==String(w.prompt||'').toLowerCase());if(!filler)break;opts.push(filler)}
+  opts=opts.sort(()=>Math.random()-.5);
+  const question=isV?`What does “${escapeHtml(w.prompt)}” mean?`:`Choose the correct answer for:<br/><span style="font-size:.9em">${escapeHtml(w.prompt)}</span>`;
+  main.innerHTML=`<section class="screen test-screen"><div class="test-workspace"><div class="test-head"><div class="ws-title"><h2>${escapeHtml(testBookName)}</h2><div class="counter">${testIndex+1} / ${testWords.length} &nbsp; ⭐ ${state.points}</div></div><div class="progress"><i style="width:${((testIndex+1)/testWords.length)*100}%"></i></div></div><div class="test-body"><div class="word-card quiz-card test-card"><div class="quiz-qno">Test Question ${testIndex+1} of ${testWords.length} · Quiz ${String(w.quiz).padStart(2,'0')}</div><div class="question">${question}</div><div class="options">${opts.map((c,i)=>`<button class="option" data-value="${escapeHtml(c)}" onclick="selectTestAnswer(this,'${escapeJs(c)}')"><span class="option-letter">${String.fromCharCode(65+i)}</span><span>${escapeHtml(c)}</span></button>`).join('')}</div><div id="testFeedback" class="feedback" aria-live="polite"></div><div class="ws-actions"><button id="testContinueBtn" class="btn primary" onclick="continueTest()" style="display:none">Continue →</button></div></div></div></div></section>`;
+}
+function selectTestAnswer(btn,val){
+  if(btn.disabled||window._testAnswered)return;window._testAnswered=true;const w=testWords[testIndex],isV=(w.contentType||'Vocabulary').toLowerCase()==='vocabulary',correctAnswer=isV?(String(w.syn||'').split(/[•,;]/).map(x=>x.trim()).filter(Boolean)[0]||String(w.answer||'')):String(w.answer||''),ok=val===correctAnswer;document.querySelectorAll('.test-card .option').forEach(x=>{x.disabled=true;if(x.dataset.value===correctAnswer)x.classList.add('correct');if(x===btn&&!ok)x.classList.add('wrong')});
+  if(ok){testScore++;state.points+=10;state.mastery[w.id]=Math.max(Number(state.mastery[w.id]||0),1)}else{testWrong.push(w.id)}
+  testResults.push({id:w.id,word:w.prompt,selected:val,correct:correctAnswer,ok,quiz:w.quiz});save();const f=document.getElementById('testFeedback');if(f){f.innerHTML=ok?'✓ Correct! <b>+10 points</b>':'✗ Not quite. The correct answer is <b>'+escapeHtml(correctAnswer)+'</b>';f.className='feedback '+(ok?'ok':'bad')+' answer-feedback'}const next=document.getElementById('testContinueBtn');if(next){next.style.display='inline-flex';next.textContent=testIndex<testWords.length-1?'Continue →':'See Results →'}
+}
+function continueTest(){if(!window._testAnswered)return;if(testIndex<testWords.length-1){testIndex++;window._testAnswered=false;renderTestQuestion()}else{finishTest()}}
+function finishTest(){
+  const total=testWords.length,accuracy=total?Math.round(testScore/total*100):0;if(!testReviewMode){state.testsTaken=(state.testsTaken||0)+1;state.testQuestions=(state.testQuestions||0)+total;state.testCorrect=(state.testCorrect||0)+testScore;state.testBestAccuracy=Math.max(Number(state.testBestAccuracy||0),accuracy);state.points+=20;}save();
+  document.getElementById('main').innerHTML=`<section class="screen"><div class="card"><div class="result-hero">🎉<h2>Test Complete</h2><p class="muted">${escapeHtml(testBookName)} · ${testSelectedQuizzes.length} quiz${testSelectedQuizzes.length===1?'':'zes'}</p></div><div class="statgrid"><div class="stat"><strong>${testScore}</strong><span>Correct</span></div><div class="stat"><strong>${total-testScore}</strong><span>Wrong</span></div><div class="stat"><strong>${accuracy}%</strong><span>Accuracy</span></div><div class="stat"><strong>+${20+(testScore*10)}</strong><span>Points earned</span></div></div><div class="test-result-list">${testResults.map((r,i)=>`<div class="test-result-row ${r.ok?'ok':'bad'}"><div class="test-result-icon">${r.ok?'✓':'✗'}</div><div class="test-result-main"><b>${i+1}. ${escapeHtml(r.word)}</b><div class="test-result-sub">Quiz ${String(r.quiz).padStart(2,'0')} · Your answer: <b>${escapeHtml(r.selected)}</b></div>${r.ok?'':'<div class="test-result-sub" style="color:var(--green)">Correct answer: <b>'+escapeHtml(r.correct)+'</b></div>'}</div></div>`).join('')}</div><div class="test-actions"><button class="btn ghost" onclick="reviewTestMistakes()">Review Mistakes</button><button class="btn secondary" onclick="openTestBook('${escapeJs(testBookKey)}')">New Test</button><button class="btn primary" onclick="go('test')">Test Center</button></div></div></section>`;window._testAnswered=false;updateNav();
+}
+function reviewTestMistakes(){const ids=new Set(testWrong);if(!ids.size){toast('No mistakes to review');return}testWords=testWords.filter(w=>ids.has(w.id));testIndex=0;testScore=0;testWrong=[];testResults=[];testReviewMode=true;window._testAnswered=false;renderTestQuestion()}
+function renderProfile(){const s=settingMap();const version=s.app_version||CAREERVOCAB_CONFIG.APP_VERSION||'1.0.0';document.getElementById('main').innerHTML=`<section class="screen"><div class="section-title"><h2>Profile & Progress</h2></div><div class="card statgrid"><div class="stat"><strong>${state.points}</strong><span>Points</span></div><div class="stat"><strong>${state.streak}</strong><span>Streak</span></div><div class="stat"><strong>${Object.keys(state.mastery).length}</strong><span>Words learned</span></div><div class="stat"><strong>${Object.keys(state.completed).length}</strong><span>Quizzes done</span></div><div class="stat"><strong>${state.testsTaken||0}</strong><span>Tests taken</span></div><div class="stat"><strong>${state.testBestAccuracy||0}%</strong><span>Best test accuracy</span></div></div><div class="section-title"><h2>Settings</h2></div><div class="list"><button id="syncBtn" class="card action" onclick="runProfileSync()">🔄<strong>Sync Content</strong><span>Fetch the latest books, words, jobs and notices when online</span></button><button id="updateBtn" class="card action" onclick="checkForUpdate()">🚀<strong>Check for Updates</strong><span>Check the latest app version and download link</span></button><button class="card action" onclick="toggleTheme()">🌙<strong>Toggle Theme</strong><span>Switch between light and dark appearance</span></button><button class="card action" onclick="resetProgress()">♻️<strong>Reset Demo Progress</strong><span>Clears local prototype progress only</span></button></div></section>`;updateNav()}
+function settingMap(){const o={};(DATA.settings||[]).forEach(x=>{const k=x.Key??x.key;if(k)o[String(k)]=String(x.Value??x.value??'')});return o}
+function boolSetting(v){return ['true','1','yes','on'].includes(String(v).toLowerCase())}
+async function runProfileSync(){
+  const btn=document.getElementById('syncBtn');
+  if(btn){btn.classList.add('syncing-btn');btn.disabled=true;btn.innerHTML='<strong><span class="sync-mark"></span><span class="sync-pulse">Syncing content…</span></strong><span>Checking Google Sheets for the latest Words, Jobs and Notices</span>'}
+  try{
+    const ok=await syncFromServer({silent:true});
+    if(ok){toast('✓ Sync complete — latest content loaded');}
+    else{toast('Sync failed — your saved content is still available');}
+  }finally{
+    if(route==='profile')renderProfile();
+  }
+}
+async function checkForUpdate(){
+  const btn=document.getElementById('updateBtn');
+  const overlay=document.createElement('div');overlay.id='updateCheckOverlay';overlay.className='checking-overlay';
+  overlay.innerHTML='<div class="checking-card"><div class="checking-ring"></div><h3 style="margin:0 0 6px">Checking for updates…</h3><p class="muted" style="margin:0">Checking the latest CareerVocab version and update link.</p></div>';
+  document.body.appendChild(overlay);
+  if(btn){btn.classList.add('syncing-btn');btn.disabled=true}
+  try{
+    if(CAREERVOCAB_CONFIG.API_URL){
+      try{
+        const res=await fetch(CAREERVOCAB_CONFIG.API_URL+'?action=bootstrap&t='+Date.now(),{cache:'no-store'});
+        if(res.ok){const data=await res.json();if(Array.isArray(data.settings))DATA.settings=data.settings;}
+      }catch(e){}
+    }
+    const st=settingMap(), current=CAREERVOCAB_CONFIG.APP_VERSION||'1.0.0', latest=st.app_version||current, url=(st.update_url||'').trim(), msg=st.update_message||'A new CareerVocab version is available.';
+    overlay.remove();
+    const box=document.createElement('div');box.id='updateModal';box.className='modal-backdrop';
+    if(url){
+      box.innerHTML=`<div class="modal status-ok"><button class="modal-close" onclick="closeModal('updateModal')">×</button><div class="modal-body"><div style="font-size:42px">🚀</div><h2>New Update Available</h2><p class="muted">${escapeHtml(msg)}</p><p><span class="version-badge">Current ${escapeHtml(current)}</span> → <span class="version-badge">New ${escapeHtml(latest)}</span></p><a class="btn primary status-link" href="${escapeHtml(url)}" target="_blank" rel="noopener" style="text-decoration:none">Download / Open Update</a><button class="btn ghost status-link" onclick="closeModal('updateModal')">Close</button></div></div>`;
+    }else{
+      box.innerHTML=`<div class="modal status-ok"><button class="modal-close" onclick="closeModal('updateModal')">×</button><div class="modal-body"><div style="font-size:46px">✓</div><h2>You’re using the latest version</h2><p class="muted">No update is available right now. Your current CareerVocab version is ${escapeHtml(current)}.</p><button class="btn primary status-link" onclick="closeModal('updateModal')">OK</button></div></div>`;
+    }
+    document.body.appendChild(box);
+  }finally{
+    if(btn){btn.classList.remove('syncing-btn');btn.disabled=false}
+  }
+}
+function closeModal(id){document.getElementById(id)?.remove()}
+function renderAdSlot(id,placement){const el=document.getElementById(id);if(!el)return;const s=settingMap();if(!boolSetting(s.ads_enabled)||!boolSetting(s.banner_ads_enabled)){el.innerHTML='';return}const now=new Date();const ads=(DATA.ads||[]).filter(a=>String(a.Type||a.type||'Banner').toLowerCase()==='banner'&&String(a.Active??a.active??true).toLowerCase()!=='false'&&(!a.Start||new Date(a.Start+'T00:00:00')<=now)&&(!a.End||new Date(a.End+'T23:59:59')>=now)&&(!a.Placement||(String(a.Placement||a.placement).toLowerCase()===placement.toLowerCase()||String(a.Placement||a.placement).toLowerCase()==='all'||(placement.toLowerCase()==='home'&&String(a.Placement||a.placement).toLowerCase()==='home_bottom')||(placement.toLowerCase()==='jobs'&&String(a.Placement||a.placement).toLowerCase()==='jobs_bottom'))));const a=ads[0];if(!a){el.innerHTML='';return}const img=a.Image||a.image||'',link=a.Link||a.link||'#';el.innerHTML=`<a class="ad-banner" href="${escapeHtml(link)}" target="_blank" rel="noopener"><div class="ad-label">Advertisement</div>${img?`<img src="${escapeHtml(img)}" alt="${escapeHtml(a.Title||'Advertisement')}"/>`:''}<div class="ad-copy">${escapeHtml(a.Title||'')}</div></a>`}
+function showPopupAd(){const s=settingMap();if(!boolSetting(s.ads_enabled)||!boolSetting(s.popup_ads_enabled)||sessionStorage.getItem('cv_popup_ad_shown')==='1')return;const now=new Date();const ads=(DATA.ads||[]).filter(a=>String(a.Type||a.type||'Popup').toLowerCase()==='popup'&&String(a.Active??a.active??true).toLowerCase()!=='false'&&(!a.Start||new Date(a.Start+'T00:00:00')<=now)&&(!a.End||new Date(a.End+'T23:59:59')>=now));const a=ads[0];if(!a)return;sessionStorage.setItem('cv_popup_ad_shown','1');const img=a.Image||a.image||'',link=a.Link||a.link||'#';const box=document.createElement('div');box.id='adModal';box.className='modal-backdrop';box.innerHTML=`<div class="modal"><button class="modal-close" onclick="closeModal('adModal')">×</button>${img?`<a href="${escapeHtml(link)}" target="_blank" rel="noopener"><img src="${escapeHtml(img)}" alt="${escapeHtml(a.Title||'Advertisement')}"/></a>`:''}<div class="modal-body"><div class="ad-label">Advertisement</div><h2>${escapeHtml(a.Title||'')}</h2><p class="muted">${escapeHtml(a.Description||'')}</p>${link&&link!=='#'?`<a class="btn primary" href="${escapeHtml(link)}" target="_blank" rel="noopener" style="display:inline-block;text-decoration:none">View Now</a>`:''}</div></div>`;document.body.appendChild(box)}
+function maybeShowRandomWord(){const s=settingMap();if(!boolSetting(s.random_word_enabled)||sessionStorage.getItem('cv_random_word_shown')==='1'||!DATA.words?.length)return;sessionStorage.setItem('cv_random_word_shown','1');const recent=JSON.parse(localStorage.getItem('cv_random_recent_words')||'[]');let pool=DATA.words.filter(w=>!recent.includes(w.id));if(!pool.length)pool=DATA.words.slice();const w=pool[Math.floor(Math.random()*pool.length)];const next=[w.id,...recent.filter(x=>x!==w.id)].slice(0,8);localStorage.setItem('cv_random_recent_words',JSON.stringify(next));const box=document.createElement('div');box.id='randomModal';box.className='modal-backdrop';box.innerHTML=`<div class="modal"><button class="modal-close" onclick="closeModal('randomModal')" aria-label="Close">×</button><div class="modal-body"><div style="text-align:center;font-size:12px;font-weight:900;color:var(--primary)">✨ RANDOM WORD</div><div class="random-word">${escapeHtml(w.word||w.prompt)}</div><div class="random-meaning">${escapeHtml(w.meaning||'—')}</div><div class="random-meta"><div class="info"><b>Synonym</b>${escapeHtml(w.syn||'—')}</div><div class="info"><b>Antonym</b>${escapeHtml(w.ant||'—')}</div></div><div class="info mnemonic" style="margin-top:8px"><b>💡 Remember</b>${escapeHtml(w.mn||'—')}</div><div class="ws-actions" style="gap:8px"><button class="btn secondary" onclick="speak('${escapeJs(w.word||w.prompt)}')">🔊 Listen</button><button class="btn ghost" onclick="star('${escapeJs(w.id)}');toast('Saved to Starred')">☆ Star</button></div><div class="ws-actions" style="gap:8px;margin-top:8px"><button class="btn primary" onclick="closeModal('randomModal');openStar('${escapeJs(w.id)}')">Learn Word</button></div></div></div>`;document.body.appendChild(box)}
+function toggleTheme(){document.body.classList.toggle('dark');localStorage.setItem('cv_theme',document.body.classList.contains('dark')?'dark':'light');applyTheme()}
+function applyTheme(){if(localStorage.getItem('cv_theme')==='dark'){document.body.classList.add('dark');document.documentElement.style.setProperty('--bg','#0f172a');document.documentElement.style.setProperty('--card','#172033');document.documentElement.style.setProperty('--text','#eef2ff');document.documentElement.style.setProperty('--muted','#a8b1c2');document.documentElement.style.setProperty('--line','#263248')}else{document.body.classList.remove('dark');document.documentElement.style.setProperty('--bg','#f5f7fb');document.documentElement.style.setProperty('--card','#fff');document.documentElement.style.setProperty('--text','#172033');document.documentElement.style.setProperty('--muted','#697386');document.documentElement.style.setProperty('--line','#e7ebf2')}}
+function resetProgress(){if(confirm('Reset local prototype progress?')){state={points:0,streak:0,stars:[],mastery:{},completed:{},lastBook:null,lastQuiz:null,testsTaken:0,testQuestions:0,testCorrect:0,testBestAccuracy:0};save();toast('Progress reset');renderProfile()}}
+applyTheme();save();</script>
+<script type="text/javascript">/* CareerVocab backend configuration.
+   Set API_URL to your deployed Google Apps Script Web App URL.
+   Never put Google/Firebase private keys or service-account secrets here. */
+const CAREERVOCAB_CONFIG = {
+  API_URL: 'https://script.google.com/macros/s/AKfycbzupDqhjxdog_2zWgrzQ8Iq9SKsIhUbkf2Ogj361kAlM44XMabUZncrpV0Eeti1Urtx4g/exec',
+  APP_VERSION: '1.6.0'
+};
+const CV_CACHE_KEY='cv_live_cache_v2';
+
+function cvSaveCache(data){
+  try{
+    localStorage.setItem(CV_CACHE_KEY,JSON.stringify({
+      books:data.books||[],
+      words:data.words||[],
+      jobs:data.jobs||[],
+      notices:data.notices||[],
+      ads:data.ads||[],
+      settings:data.settings||[],
+      savedAt:Date.now()
+    }));
+  }catch(e){}
+}
+
+function cvLoadCache(){
+  try{
+    const c=JSON.parse(localStorage.getItem(CV_CACHE_KEY)||'null');
+    if(!c || !Array.isArray(c.words)) return false;
+    if(Array.isArray(c.books)) DATA.books=c.books;
+
+    const words=(c.words||[]).map(x=>({
+      ...x,
+      id:String(x.id??x.ID??''),
+      category:'vocabulary',
+      contentType:'Vocabulary',
+      book:String(x.bookId??x.Book??x.book??'General'),
+      quiz:Number(x.quizId??x.Quiz??x.quiz??1),
+      prompt:x.word??x.Word??'',
+      answer:x.word??x.Word??'',
+      meaning:x.meaningBn??x.Meaning??x.meaning??'',
+      syn:x.synonyms??x.Synonym??x.synonym??'',
+      ant:x.antonyms??x.Antonym??x.antonym??'',
+      mn:x.mnemonic??x.Mnemonic??x.mnemonic??'',
+      sentence:x.example??x.Sentence??x.sentence??'',
+      pronunciation:x.pronunciation??x.Pronunciation??''
+    }));
+
+    DATA.content=words;
+    if(Array.isArray(c.jobs)) DATA.jobs=c.jobs;
+    if(Array.isArray(c.notices)) DATA.notices=c.notices;
+    if(Array.isArray(c.ads)) DATA.ads=c.ads;
+    if(Array.isArray(c.settings)) DATA.settings=c.settings;
+    normalizeData();
+    return true;
+  }catch(e){ return false; }
+}
+
+async function syncFromServer(opts){
+  opts=opts||{};
+  const silent=!!opts.silent;
+  if(!CAREERVOCAB_CONFIG.API_URL){
+    if(!silent) toast('API URL is not configured yet');
+    return false;
+  }
+
+  let controller=null,timer=null;
+  try{
+    if('AbortController' in window){
+      controller=new AbortController();
+      timer=setTimeout(()=>controller.abort(),8000);
+    }
+
+    const res=await fetch(
+      CAREERVOCAB_CONFIG.API_URL + '?action=bootstrap&_='+Date.now(),
+      {
+        cache:'no-store',
+        signal:controller?controller.signal:undefined
+      }
+    );
+    if(!res.ok) throw new Error('API request failed');
+
+    const data=await res.json();
+
+    if(Array.isArray(data.books)) DATA.books=data.books;
+
+    const words=(data.words||[]).map(x=>({
+      ...x,
+      id:String(x.id??x.ID??''),
+      category:'vocabulary',
+      contentType:'Vocabulary',
+      book:String(x.bookId??x.Book??x.book??'General'),
+      quiz:Number(x.quizId??x.Quiz??x.quiz??1),
+      prompt:x.word??x.Word??'',
+      answer:x.word??x.Word??'',
+      meaning:x.meaningBn??x.Meaning??x.meaning??'',
+      syn:x.synonyms??x.Synonym??x.synonym??'',
+      ant:x.antonyms??x.Antonym??x.antonym??'',
+      mn:x.mnemonic??x.Mnemonic??x.mnemonic??'',
+      sentence:x.example??x.Sentence??x.sentence??'',
+      pronunciation:x.pronunciation??x.Pronunciation??''
+    }));
+
+    DATA.content=words;
+    if(data.jobs) DATA.jobs=data.jobs;
+    if(Array.isArray(data.notices)) DATA.notices=data.notices;
+    if(Array.isArray(data.ads)) DATA.ads=data.ads;
+    if(Array.isArray(data.settings)) DATA.settings=data.settings;
+
+    normalizeData();
+    cvSaveCache(data);
+    localStorage.setItem('cv_last_sync',new Date().toISOString());
+
+    if(route==='home') renderHome();
+    else if(route==='books') renderBooks();
+    else if(route==='jobs') renderJobs();
+    else if(route==='profile') renderProfile();
+
+    if(!silent) toast('Content synced');
+    return true;
+  }catch(e){
+    if(!silent) toast('Sync failed — using saved content');
+    return false;
+  }finally{
+    if(timer) clearTimeout(timer);
+  }
+}
+
+let cvSyncRunning=false;
+let cvLastAutoSync=0;
+
+async function autoSyncCareerVocab(force){
+  if(!CAREERVOCAB_CONFIG.API_URL || cvSyncRunning) return;
+  const now=Date.now();
+  if(!force && now-cvLastAutoSync<15000) return;
+  cvLastAutoSync=now;
+  cvSyncRunning=true;
+  try{
+    await syncFromServer({silent:true});
+  }finally{
+    cvSyncRunning=false;
+  }
+}
+
+function bootCareerVocab(){
+  cvLoadCache();
+
+  /* Show saved Sheet content immediately; never wait for Google Sheets. */
+  renderHome();
+  maybeShowRandomWord();
+  showPopupAd();
+
+  /* Mobile-safe background refresh: try immediately, then retry if the first
+     request is delayed by mobile network / browser startup. Never block the UI. */
+  if(CAREERVOCAB_CONFIG.API_URL){
+    const bootRefresh=()=>{
+      autoSyncCareerVocab(true);
+      setTimeout(()=>autoSyncCareerVocab(true),1200);
+      setTimeout(()=>autoSyncCareerVocab(true),3500);
+      setTimeout(()=>autoSyncCareerVocab(true),8000);
+    };
+    bootRefresh();
+    window.addEventListener('online',()=>bootRefresh());
+    window.addEventListener('focus',()=>autoSyncCareerVocab(true));
+    document.addEventListener('visibilitychange',()=>{
+      if(document.visibilityState==='visible') autoSyncCareerVocab(true);
+    });
+    window.addEventListener('pageshow',()=>bootRefresh());
+    setInterval(()=>autoSyncCareerVocab(false),60000);
+  }
+}
+
+function configureApi(){
+  const current=CAREERVOCAB_CONFIG.API_URL||'';
+  const url=prompt('Google Apps Script Web App URL:',current);
+  if(url!==null){
+    localStorage.setItem('cv_api_url',url.trim());
+    CAREERVOCAB_CONFIG.API_URL=url.trim();
+    toast('API URL saved');
+  }
+}
+
+bootCareerVocab();</script>
+<script type="text/javascript">if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js').catch(()=>{}));}</script>
+<script type='text/javascript'>(function(){
+  function adminEsc(v){return escapeHtml(String(v??''));}
+  function adminApi(){return (typeof CAREERVOCAB_CONFIG!=='undefined'&&CAREERVOCAB_CONFIG.API_URL)||'';}
+  function adminKey(){return sessionStorage.getItem('cv_admin_key')||'';}
+  function adminPost(sheet,data,cb){
+    const key=adminKey();
+    if(!key){renderAdminLogin();return;}
+    fetch(adminApi(),{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({key,action:'upsert',sheet,data})})
+      .then(r=>r.json()).then(x=>{if(cb)cb(x)}).catch(e=>cb&&cb({ok:false,error:String(e)}));
+  }
+  function adminSetting(key,value,cb){
+    const k=adminKey();
+    if(!k){renderAdminLogin();return;}
+    fetch(adminApi(),{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({key:k,action:'setting',settingKey:key,value:String(value)})})
+      .then(r=>r.json()).then(x=>{if(cb)cb(x)}).catch(e=>cb&&cb({ok:false,error:String(e)}));
+  }
+  window.renderAdminLogin=function(){
+    route='admin'; updateNav();
+    document.getElementById('main').innerHTML=`<section class="screen admin-wrap"><div class="admin-login admin-card"><div class="admin-title">Admin Access</div><p class="admin-note">Enter your Apps Script admin key. It is kept only for this browser session.</p><div class="admin-field"><label>Admin Key</label><input id="adminKeyInput" type="password" autocomplete="off" placeholder="Enter admin key"></div><div class="admin-actions"><button class="btn primary" onclick="adminLogin()">Open Admin</button><button class="admin-back" onclick="go('home')">Back</button></div><div id="adminLoginStatus" class="admin-status"></div></div></section>`;
+  };
+  window.adminLogin=function(){
+    const k=(document.getElementById('adminKeyInput')?.value||'').trim();
+    if(!k){document.getElementById('adminLoginStatus').textContent='Enter the admin key.';return;}
+    sessionStorage.setItem('cv_admin_key',k); renderAdmin();
+  };
+  window.adminLogout=function(){sessionStorage.removeItem('cv_admin_key');renderAdminLogin();};
+  window.adminSave=function(sheet,data){
+    const st=document.getElementById('adminStatus'); if(st)st.textContent='Saving…';
+    adminPost(sheet,data,function(x){
+      if(x&&x.ok){if(st)st.textContent='✓ Saved to Google Sheets';toast('Saved to '+sheet);}
+      else{if(st)st.textContent='✕ '+(x&&x.error||'Save failed');}
+    });
+  };
+  window.renderAdmin=function(){
+    if(!adminKey()){renderAdminLogin();return;}
+    route='admin'; updateNav();
+    document.getElementById('main').innerHTML=`<section class="screen admin-wrap">
+      <div class="admin-head"><div><div class="admin-title">Admin Panel</div><div class="admin-note">Words · Job Circulars · Notices · Custom Ads</div></div><div class="admin-actions"><button class="admin-back" onclick="adminLogout()">Logout</button><button class="admin-back" onclick="go('home')">Home</button></div></div>
+      <div class="admin-grid">
+        <div class="admin-card"><h3>➕ Add / Update Word</h3>
+          <div class="admin-row"><div class="admin-field"><label>ID</label><input id="aw_id" placeholder="w101"></div><div class="admin-field"><label>Book ID</label><input id="aw_bookId" placeholder="ws1"></div></div>
+          <div class="admin-row"><div class="admin-field"><label>Quiz ID</label><input id="aw_quizId" type="number" placeholder="1"></div><div class="admin-field"><label>Word</label><input id="aw_word" placeholder="Frugal"></div></div>
+          <div class="admin-field"><label>Bangla Meaning</label><input id="aw_meaningBn"></div><div class="admin-field"><label>Synonyms</label><input id="aw_synonyms"></div><div class="admin-field"><label>Antonyms</label><input id="aw_antonyms"></div><div class="admin-field"><label>Mnemonic</label><textarea id="aw_mnemonic"></textarea></div><div class="admin-field"><label>Example</label><textarea id="aw_example"></textarea></div><div class="admin-field"><label>Pronunciation</label><input id="aw_pronunciation"></div>
+          <div class="admin-actions"><button class="btn primary" onclick="saveAdminWord()">Save Word</button></div>
+        </div>
+        <div class="admin-card"><h3>💼 Add / Update Job</h3>
+          <div class="admin-row"><div class="admin-field"><label>ID</label><input id="aj_id" placeholder="job101"></div><div class="admin-field"><label>Title</label><input id="aj_title"></div></div>
+          <div class="admin-row"><div class="admin-field"><label>Organization</label><input id="aj_org"></div><div class="admin-field"><label>Category</label><input id="aj_cat" placeholder="Bank / Govt / Private"></div></div>
+          <div class="admin-row"><div class="admin-field"><label>Location</label><input id="aj_loc"></div><div class="admin-field"><label>Deadline</label><input id="aj_deadline" type="date"></div></div>
+          <div class="admin-field"><label>Description</label><textarea id="aj_desc"></textarea></div><div class="admin-field"><label>Requirements</label><textarea id="aj_req"></textarea></div><div class="admin-field"><label>Apply URL</label><input id="aj_apply" type="url"></div><div class="admin-field"><label>Published</label><input id="aj_published" type="date"></div><div class="admin-field"><label>Circular Image URL</label><input id="aj_image" type="url"></div><div class="admin-field"><label>Multiple Image URLs (one per line)</label><textarea id="aj_images" placeholder="https://...\nhttps://..."></textarea></div>
+          <div class="admin-actions"><button class="btn primary" onclick="saveAdminJob()">Save Job</button></div>
+        </div>
+        <div class="admin-card"><h3>📢 Add / Update Notice</h3>
+          <div class="admin-row"><div class="admin-field"><label>ID</label><input id="an_id" placeholder="notice101"></div><div class="admin-field"><label>Title</label><input id="an_title"></div></div>
+          <div class="admin-row"><div class="admin-field"><label>Category</label><input id="an_category"></div><div class="admin-field"><label>Priority</label><select id="an_priority"><option>Normal</option><option>High</option><option>Urgent</option></select></div></div>
+          <div class="admin-row"><div class="admin-field"><label>Published</label><input id="an_published" type="date"></div><div class="admin-field"><label>Expiry</label><input id="an_expiry" type="date"></div></div>
+          <div class="admin-field"><label>Description</label><textarea id="an_description"></textarea></div><div class="admin-field"><label>Link</label><input id="an_link" type="url"></div>
+          <div class="admin-actions"><label style="display:flex;align-items:center;gap:7px;font-size:13px;font-weight:800"><input id="an_active" type="checkbox" checked> Active</label><button class="btn primary" onclick="saveAdminNotice()">Save Notice</button></div>
+        </div>
+        <div class="admin-card"><h3>📣 Custom Banner / Popup Ad</h3>
+          <div class="admin-note">Create your own banner or popup advertisement. Control type, placement and dates.</div>
+          <div class="admin-row"><div class="admin-field"><label>ID</label><input id="aa_id" placeholder="ad101"></div><div class="admin-field"><label>Type</label><select id="aa_type"><option value="Banner">Banner</option><option value="Popup">Popup</option></select></div></div>
+          <div class="admin-field"><label>Title</label><input id="aa_title" placeholder="Special Offer"></div>
+          <div class="admin-field"><label>Description</label><textarea id="aa_description" placeholder="Short ad message"></textarea></div>
+          <div class="admin-field"><label>Image URL</label><input id="aa_image" type="url" placeholder="https://..."></div>
+          <div class="admin-field"><label>Target Link</label><input id="aa_link" type="url" placeholder="https://..."></div>
+          <div class="admin-row"><div class="admin-field"><label>Placement</label><select id="aa_placement"><option value="all">All</option><option value="home_bottom">Home</option><option value="jobs_bottom">Jobs</option></select></div><div class="admin-field"><label>Active</label><select id="aa_active"><option value="true">Active</option><option value="false">Inactive</option></select></div></div>
+          <div class="admin-row"><div class="admin-field"><label>Start Date</label><input id="aa_start" type="date"></div><div class="admin-field"><label>End Date</label><input id="aa_end" type="date"></div></div>
+          <div class="admin-actions"><button class="btn primary" onclick="saveAdminAd()">Save Ad</button></div>
+        </div>
+        <div class="admin-card"><h3>⚙️ Ad Display Settings</h3>
+          <div class="admin-note">Turn banner and popup ads on/off without deleting ad records.</div>
+          <div class="admin-checks"><label class="admin-check"><input id="ads_enabled" type="checkbox"> Ads Enabled</label><label class="admin-check"><input id="banner_ads_enabled" type="checkbox"> Banner Enabled</label><label class="admin-check"><input id="popup_ads_enabled" type="checkbox"> Popup Enabled</label></div>
+          <div class="admin-actions"><button class="btn primary" onclick="saveAdSettings()">Save Ad Settings</button></div>
+        </div>
+      </div><div id="adminStatus" class="admin-status"></div><p class="admin-note">Same ID = update existing row. New ID = add a new row. The API key is required for every write.</p>
+    </section>`;
+    const sm=settingMap();
+    document.getElementById('ads_enabled').checked=boolSetting(sm.ads_enabled);
+    document.getElementById('banner_ads_enabled').checked=boolSetting(sm.banner_ads_enabled);
+    document.getElementById('popup_ads_enabled').checked=boolSetting(sm.popup_ads_enabled);
+  };
+  function val(id){return document.getElementById(id)?.value||'';}
+  window.saveAdminWord=function(){adminSave('Words',{id:val('aw_id'),bookId:val('aw_bookId'),quizId:val('aw_quizId'),word:val('aw_word'),meaningBn:val('aw_meaningBn'),synonyms:val('aw_synonyms'),antonyms:val('aw_antonyms'),mnemonic:val('aw_mnemonic'),example:val('aw_example'),pronunciation:val('aw_pronunciation')});};
+  window.saveAdminJob=function(){adminSave('Jobs',{id:val('aj_id'),title:val('aj_title'),org:val('aj_org'),cat:val('aj_cat'),loc:val('aj_loc'),desc:val('aj_desc'),req:val('aj_req'),apply:val('aj_apply'),published:val('aj_published'),deadline:val('aj_deadline'),image:val('aj_image'),imageUrl:val('aj_image'),circularImage:val('aj_image'),images:val('aj_images')});};
+  window.saveAdminNotice=function(){adminSave('Notices',{id:val('an_id'),title:val('an_title'),category:val('an_category'),description:val('an_description'),published:val('an_published'),expiry:val('an_expiry'),priority:val('an_priority'),link:val('an_link'),active:document.getElementById('an_active')?.checked?'true':'false'});};
+  window.saveAdminAd=function(){adminSave('Ads',{id:val('aa_id'),type:val('aa_type'),title:val('aa_title'),description:val('aa_description'),image:val('aa_image'),link:val('aa_link'),active:val('aa_active'),placement:val('aa_placement'),start:val('aa_start'),end:val('aa_end')});};
+  window.saveAdSettings=function(){
+    const status=document.getElementById('adminStatus');
+    if(status)status.textContent='Saving ad settings…';
+    const items=[['ads_enabled',document.getElementById('ads_enabled')?.checked?'true':'false'],['banner_ads_enabled',document.getElementById('banner_ads_enabled')?.checked?'true':'false'],['popup_ads_enabled',document.getElementById('popup_ads_enabled')?.checked?'true':'false']];
+    let left=items.length,failed=false;
+    items.forEach(([k,v])=>adminSetting(k,v,x=>{if(!x?.ok)failed=true;if(--left===0){if(status)status.textContent=failed?'✕ Some ad settings failed':'✓ Ad settings saved to Google Sheets';toast(failed?'Some settings failed':'Ad settings saved')}}));
+  };
+  function checkAdminHash(){if(location.hash.toLowerCase()==='#admin')renderAdmin();}
+  window.addEventListener('hashchange',checkAdminHash);
+  setTimeout(checkAdminHash,100);
+})();</script>
+<script src="/firebase-config.js"></script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => navigator.serviceWorker.register("/service-worker.js").catch(console.error));
+}
+</script>
+</body>
+</html>
