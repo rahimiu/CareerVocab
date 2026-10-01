@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#2563eb">
 <meta name="description" content="CareerVocab — vocabulary learning and job circulars">
 <meta name="application-name" content="CareerVocab">
-<link rel="manifest" href="/manifest.json">
+<link rel="manifest" href="./manifest.json">
 <title>CareerVocab</title>
 <style>
 :root{
@@ -552,7 +552,7 @@ function finishTest(){
   document.getElementById('main').innerHTML=`<section class="screen"><div class="card"><div class="result-hero">🎉<h2>Test Complete</h2><p class="muted">${escapeHtml(testBookName)} · ${testSelectedQuizzes.length} quiz${testSelectedQuizzes.length===1?'':'zes'}</p></div><div class="statgrid"><div class="stat"><strong>${testScore}</strong><span>Correct</span></div><div class="stat"><strong>${total-testScore}</strong><span>Wrong</span></div><div class="stat"><strong>${accuracy}%</strong><span>Accuracy</span></div><div class="stat"><strong>+${20+(testScore*10)}</strong><span>Points earned</span></div></div><div class="test-result-list">${testResults.map((r,i)=>`<div class="test-result-row ${r.ok?'ok':'bad'}"><div class="test-result-icon">${r.ok?'✓':'✗'}</div><div class="test-result-main"><b>${i+1}. ${escapeHtml(r.word)}</b><div class="test-result-sub">Quiz ${String(r.quiz).padStart(2,'0')} · Your answer: <b>${escapeHtml(r.selected)}</b></div>${r.ok?'':'<div class="test-result-sub" style="color:var(--green)">Correct answer: <b>'+escapeHtml(r.correct)+'</b></div>'}</div></div>`).join('')}</div><div class="test-actions"><button class="btn ghost" onclick="reviewTestMistakes()">Review Mistakes</button><button class="btn secondary" onclick="openTestBook('${escapeJs(testBookKey)}')">New Test</button><button class="btn primary" onclick="go('test')">Test Center</button></div></div></section>`;window._testAnswered=false;updateNav();
 }
 function reviewTestMistakes(){const ids=new Set(testWrong);if(!ids.size){toast('No mistakes to review');return}testWords=testWords.filter(w=>ids.has(w.id));testIndex=0;testScore=0;testWrong=[];testResults=[];testReviewMode=true;window._testAnswered=false;renderTestQuestion()}
-function renderProfile(){const s=settingMap();const version=s.app_version||CAREERVOCAB_CONFIG.APP_VERSION||'1.0.0';document.getElementById('main').innerHTML=`<section class="screen"><div class="section-title"><h2>Profile & Progress</h2></div><div class="card statgrid"><div class="stat"><strong>${state.points}</strong><span>Points</span></div><div class="stat"><strong>${state.streak}</strong><span>Streak</span></div><div class="stat"><strong>${Object.keys(state.mastery).length}</strong><span>Words learned</span></div><div class="stat"><strong>${Object.keys(state.completed).length}</strong><span>Quizzes done</span></div><div class="stat"><strong>${state.testsTaken||0}</strong><span>Tests taken</span></div><div class="stat"><strong>${state.testBestAccuracy||0}%</strong><span>Best test accuracy</span></div></div><div class="section-title"><h2>Settings</h2></div><div class="list"><button id="syncBtn" class="card action" onclick="runProfileSync()">🔄<strong>Sync Content</strong><span>Fetch the latest books, words, jobs and notices when online</span></button><button id="updateBtn" class="card action" onclick="checkForUpdate()">🚀<strong>Check for Updates</strong><span>Check the latest app version and download link</span></button><button class="card action" onclick="toggleTheme()">🌙<strong>Toggle Theme</strong><span>Switch between light and dark appearance</span></button><button class="card action" onclick="resetProgress()">♻️<strong>Reset Demo Progress</strong><span>Clears local prototype progress only</span></button></div></section>`;updateNav()}
+function renderProfile(){const s=settingMap();const version=s.app_version||CAREERVOCAB_CONFIG.APP_VERSION||'1.0.0';document.getElementById('main').innerHTML=`<section class="screen"><div class="section-title"><h2>Profile & Progress</h2></div><div class="card statgrid"><div class="stat"><strong>${state.points}</strong><span>Points</span></div><div class="stat"><strong>${state.streak}</strong><span>Streak</span></div><div class="stat"><strong>${Object.keys(state.mastery).length}</strong><span>Words learned</span></div><div class="stat"><strong>${Object.keys(state.completed).length}</strong><span>Quizzes done</span></div><div class="stat"><strong>${state.testsTaken||0}</strong><span>Tests taken</span></div><div class="stat"><strong>${state.testBestAccuracy||0}%</strong><span>Best test accuracy</span></div></div><div class="section-title"><h2>Settings</h2></div><div class="list"><button id="syncBtn" class="card action" onclick="runProfileSync()">🔄<strong>Sync Content</strong><span>Fetch the latest books, words, jobs and notices when online</span></button><button id="updateBtn" class="card action" onclick="checkForUpdate()">🚀<strong>Check for Updates</strong><span>Check the latest app version and download link</span></button><button id="notificationBtn" class="card action" onclick="enableCareerVocabNotifications()">🔔<strong>Enable Notifications</strong><span>Get new job circulars and important CareerVocab updates</span></button><button class="card action" onclick="toggleTheme()">🌙<strong>Toggle Theme</strong><span>Switch between light and dark appearance</span></button><button class="card action" onclick="resetProgress()">♻️<strong>Reset Demo Progress</strong><span>Clears local prototype progress only</span></button></div></section>`;updateNav()}
 function settingMap(){const o={};(DATA.settings||[]).forEach(x=>{const k=x.Key??x.key;if(k)o[String(k)]=String(x.Value??x.value??'')});return o}
 function boolSetting(v){return ['true','1','yes','on'].includes(String(v).toLowerCase())}
 async function runProfileSync(){
@@ -880,11 +880,86 @@ bootCareerVocab();</script>
   window.addEventListener('hashchange',checkAdminHash);
   setTimeout(checkAdminHash,100);
 })();</script>
-<script src="/firebase-config.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging-compat.js"></script>
+<script src="./firebase-config.js"></script>
 <script>
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => navigator.serviceWorker.register("/service-worker.js").catch(console.error));
-}
+(function(){
+  const cfg=window.CAREERVOCAB_FIREBASE||{};
+  const key='cv_fcm_token';
+  let messaging=null;
+  let messagingReady=false;
+  function basePath(){ return new URL('./',location.href).pathname; }
+  async function registerMessagingSW(){
+    if(!('serviceWorker' in navigator)) throw new Error('Service Worker is not supported');
+    return navigator.serviceWorker.register('./firebase-messaging-sw.js');
+  }
+  function setButton(text,disabled){
+    const b=document.getElementById('notificationBtn');
+    if(b){b.querySelector('strong').textContent=text;b.disabled=!!disabled;}
+  }
+  async function initMessaging(){
+    if(!cfg.enabled || !cfg.apiKey || !cfg.projectId || !cfg.messagingSenderId || !cfg.appId || !cfg.vapidKey) return false;
+    if(!window.firebase) return false;
+    if(!firebase.apps.length) firebase.initializeApp({apiKey:cfg.apiKey,authDomain:cfg.authDomain,projectId:cfg.projectId,storageBucket:cfg.storageBucket,messagingSenderId:cfg.messagingSenderId,appId:cfg.appId});
+    messaging=firebase.messaging();
+    messagingReady=true;
+    try{
+      messaging.onMessage(payload=>{
+        const n=payload.notification||payload.data||{};
+        if(n.title) toast('🔔 '+n.title+(n.body?' — '+n.body:''));
+      });
+    }catch(e){}
+    return true;
+  }
+  async function registerTokenOnServer(token){
+    const api=(window.CAREERVOCAB_CONFIG&&CAREERVOCAB_CONFIG.API_URL)||'';
+    if(!api || !token) return false;
+    try{
+      const res=await fetch(api,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'registerToken',token:token,platform:'web'})});
+      const data=await res.json();
+      return !!data.ok;
+    }catch(e){
+      console.warn('CareerVocab FCM token registration failed',e);
+      return false;
+    }
+  }
+  window.enableCareerVocabNotifications=async function(){
+    const b=document.getElementById('notificationBtn');
+    if(b){b.disabled=true;b.querySelector('strong').textContent='Enabling Notifications…';}
+    try{
+      if(!('Notification' in window)){toast('Notifications are not supported in this browser');return;}
+      if(Notification.permission==='denied'){toast('Notifications are blocked. Enable them in browser settings.');return;}
+      const ok=await initMessaging();
+      if(!ok) throw new Error('Firebase Messaging is not configured');
+      const permission=await Notification.requestPermission();
+      if(permission!=='granted'){toast('Notification permission was not granted');return;}
+      const registration=await registerMessagingSW();
+      const token=await messaging.getToken({vapidKey:cfg.vapidKey,serviceWorkerRegistration:registration});
+      if(!token) throw new Error('No FCM token returned');
+      localStorage.setItem(key,token);
+      localStorage.setItem('cv_fcm_permission','granted');
+      const registered=await registerTokenOnServer(token);
+      setButton('Notifications Enabled',true);
+      toast(registered?'✓ Notifications enabled':'✓ Notifications enabled (server sync pending)');
+    }catch(e){
+      console.error('CareerVocab notification setup failed',e);
+      setButton('Enable Notifications',false);
+      toast('Could not enable notifications yet');
+    }
+  };
+  async function boot(){
+    if('serviceWorker' in navigator){
+      navigator.serviceWorker.register('./service-worker.js').catch(()=>{});
+      if(cfg.enabled) { try{ await initMessaging(); }catch(e){} }
+    }
+    if('Notification' in window && Notification.permission==='granted' && localStorage.getItem(key)){
+      setButton('Notifications Enabled',true);
+      registerTokenOnServer(localStorage.getItem(key));
+    }
+  }
+  window.addEventListener('load',boot);
+})();
 </script>
 </body>
 </html>
