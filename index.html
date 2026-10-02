@@ -888,57 +888,84 @@ bootCareerVocab();</script>
   const cfg=window.CAREERVOCAB_FIREBASE||{};
   const key='cv_fcm_token';
   let messaging=null;
-  let messagingReady=false;
   function basePath(){ return new URL('./',location.href).pathname; }
-  async function registerMessagingSW(){
-    if(!('serviceWorker' in navigator)) throw new Error('Service Worker is not supported');
-    const reg=await navigator.serviceWorker.register('./firebase-messaging-sw.js',{scope:basePath()});
-    await navigator.serviceWorker.ready;
-    return reg;
-  }
   function setButton(text,disabled){
     const b=document.getElementById('notificationBtn');
-    if(b){b.querySelector('strong').textContent=text;b.disabled=!!disabled;}
+    if(b){const strong=b.querySelector('strong'); if(strong) strong.textContent=text; b.disabled=!!disabled;}
+  }
+  function firebaseReady(){
+    return !!(cfg.enabled && cfg.apiKey && cfg.projectId && cfg.messagingSenderId && cfg.appId && cfg.vapidKey && window.firebase);
   }
   async function initMessaging(){
-    if(!cfg.enabled || !cfg.apiKey || !cfg.projectId || !cfg.messagingSenderId || !cfg.appId || !cfg.vapidKey) return false;
-    if(!window.firebase) return false;
-    if(!firebase.apps.length) firebase.initializeApp({apiKey:cfg.apiKey,authDomain:cfg.authDomain,projectId:cfg.projectId,storageBucket:cfg.storageBucket,messagingSenderId:cfg.messagingSenderId,appId:cfg.appId});
+    if(!firebaseReady()) throw new Error('Firebase Messaging is not configured');
+    if(!firebase.apps.length){
+      firebase.initializeApp({apiKey:cfg.apiKey,authDomain:cfg.authDomain,projectId:cfg.projectId,storageBucket:cfg.storageBucket,messagingSenderId:cfg.messagingSenderId,appId:cfg.appId});
+    }
     messaging=firebase.messaging();
-    messagingReady=true;
-    try{
-      messaging.onMessage(payload=>{
-        const n=payload.notification||payload.data||{};
-        if(n.title) toast('🔔 '+n.title+(n.body?' — '+n.body:''));
+    try{ messaging.onMessage(payload=>{ const n=payload.notification||payload.data||{}; if(n.title) toast('🔔 '+n.title+(n.body?' — '+n.body:'')); }); }catch(e){}
+    return messaging;
+  }
+  async function cleanupOldRegistrations(){
+    if(!('serviceWorker' in navigator)) throw new Error('Service Worker is not supported');
+    const scope=basePath();
+    const regs=await navigator.serviceWorker.getRegistrations();
+    await Promise.all(regs.map(async r=>{
+      const sameScope=r.scope===new URL(scope,location.origin).href;
+      const script=r.active?.scriptURL||r.waiting?.scriptURL||r.installing?.scriptURL||'';
+      const oldPwa=script && script.includes('/service-worker.js');
+      if(sameScope && oldPwa) await r.unregister();
+    }));
+  }
+  async function registerMessagingSW(){
+    await cleanupOldRegistrations();
+    const reg=await navigator.serviceWorker.register('./firebase-messaging-sw.js',{scope:basePath(),updateViaCache:'none'});
+    await reg.update().catch(()=>{});
+    if(!reg.active){
+      await new Promise((resolve,reject)=>{
+        const w=reg.installing||reg.waiting;
+        if(!w){resolve();return;}
+        const timer=setTimeout(()=>resolve(),10000);
+        w.addEventListener('statechange',()=>{ if(w.state==='activated'){clearTimeout(timer);resolve();} if(w.state==='redundant'){clearTimeout(timer);reject(new Error('Firebase service worker became redundant'));} });
       });
-    }catch(e){}
-    return true;
+    }
+    if(!reg.active) throw new Error('Firebase service worker is not active');
+    return reg;
   }
   async function registerTokenOnServer(token){
     const api=(window.CAREERVOCAB_CONFIG&&CAREERVOCAB_CONFIG.API_URL)||'';
-    if(!api || !token) return false;
+    if(!api||!token) return false;
     try{
       const res=await fetch(api,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'registerToken',token:token,platform:'web'})});
       const data=await res.json();
       return !!data.ok;
-    }catch(e){
-      console.warn('CareerVocab FCM token registration failed',e);
-      return false;
+    }catch(e){ console.warn('CareerVocab FCM token registration failed',e); return false; }
+  }
+  async function getTokenWithFallback(reg){
+    try{
+      return await messaging.getToken({vapidKey:cfg.vapidKey,serviceWorkerRegistration:reg});
+    }catch(first){
+      console.warn('CareerVocab explicit SW getToken failed; trying default registration',first);
+      return await messaging.getToken({vapidKey:cfg.vapidKey});
     }
   }
   window.enableCareerVocabNotifications=async function(){
     const b=document.getElementById('notificationBtn');
-    if(b){b.disabled=true;b.querySelector('strong').textContent='Enabling Notifications…';}
+    if(b){b.disabled=true;const strong=b.querySelector('strong');if(strong)strong.textContent='Enabling Notifications…';}
     try{
-      if(!('Notification' in window)){toast('Notifications are not supported in this browser');return;}
-      if(Notification.permission==='denied'){toast('Notifications are blocked. Enable them in browser settings.');return;}
-      const ok=await initMessaging();
-      if(!ok) throw new Error('Firebase Messaging is not configured');
-      const permission=await Notification.requestPermission();
-      if(permission!=='granted'){toast('Notification permission was not granted');return;}
+      if(!('Notification' in window)) throw new Error('Notifications are not supported in this browser');
+      if(!('serviceWorker' in navigator)) throw new Error('Service Worker is not supported');
+      if(!('PushManager' in window)) throw new Error('Push API is not supported');
+      if(Notification.permission==='denied') throw new Error('Notifications are blocked in browser settings');
+
+      // Ask for browser permission before starting FCM registration.
+      const permission=Notification.permission==='granted'?'granted':await Notification.requestPermission();
+      if(permission!=='granted') throw new Error('Notification permission was not granted');
+
+      await initMessaging();
       const registration=await registerMessagingSW();
-      const token=await messaging.getToken({vapidKey:cfg.vapidKey,serviceWorkerRegistration:registration});
-      if(!token) throw new Error('No FCM token returned');
+      const token=await getTokenWithFallback(registration);
+      if(!token) throw new Error('FCM returned no registration token');
+
       localStorage.setItem(key,token);
       localStorage.setItem('cv_fcm_permission','granted');
       const registered=await registerTokenOnServer(token);
@@ -947,17 +974,21 @@ bootCareerVocab();</script>
     }catch(e){
       console.error('CareerVocab notification setup failed',e);
       setButton('Enable Notifications',false);
-      const msg=(e&&e.message)?e.message:String(e||'Unknown error');
-      const name=(e&&e.name)?e.name:'';
-      console.error('CareerVocab FCM diagnostic:',{name,message:msg,permission:('Notification' in window?Notification.permission:'unsupported'),basePath:basePath(),serviceWorkerSupported:('serviceWorker' in navigator),pushSupported:('PushManager' in window)});
+      const msg=e&&e.message?e.message:String(e||'Unknown error');
+      const name=e&&e.name?e.name:'';
+      let subscription='unknown';
+      try{
+        const regs=await navigator.serviceWorker.getRegistrations();
+        const active=regs.find(r=>r.scope===new URL(basePath(),location.origin).href && r.active);
+        if(active&&active.pushManager){const sub=await active.pushManager.getSubscription();subscription=sub?'existing':'none';}
+      }catch(_){subscription='check-failed';}
+      console.error('CareerVocab FCM diagnostic',{name,message:msg,permission:('Notification'in window?Notification.permission:'unsupported'),basePath:basePath(),serviceWorkerSupported:('serviceWorker'in navigator),pushSupported:('PushManager'in window),subscription});
       toast('Notification setup failed: '+(name?name+': ':'')+msg.slice(0,120));
     }
   };
   async function boot(){
-    if('serviceWorker' in navigator){
-      if(cfg.enabled) { try{ await initMessaging(); }catch(e){} }
-    }
-    if('Notification' in window && Notification.permission==='granted' && localStorage.getItem(key)){
+    try{ await initMessaging(); }catch(e){}
+    if('Notification'in window && Notification.permission==='granted' && localStorage.getItem(key)){
       setButton('Notifications Enabled',true);
       registerTokenOnServer(localStorage.getItem(key));
     }
