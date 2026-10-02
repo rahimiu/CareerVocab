@@ -892,9 +892,7 @@ bootCareerVocab();</script>
   function basePath(){ return new URL('./',location.href).pathname; }
   async function registerMessagingSW(){
     if(!('serviceWorker' in navigator)) throw new Error('Service Worker is not supported');
-    const reg = await navigator.serviceWorker.register('./service-worker.js');
-     await reg.update();
-     return reg;
+    return navigator.serviceWorker.register('./firebase-messaging-sw.js');
   }
   function setButton(text,disabled){
     const b=document.getElementById('notificationBtn');
