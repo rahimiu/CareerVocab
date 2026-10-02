@@ -781,7 +781,7 @@ function configureApi(){
 }
 
 bootCareerVocab();</script>
-<script type="text/javascript">if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js').catch(()=>{}));}</script>
+
 <script type='text/javascript'>(function(){
   function adminEsc(v){return escapeHtml(String(v??''));}
   function adminApi(){return (typeof CAREERVOCAB_CONFIG!=='undefined'&&CAREERVOCAB_CONFIG.API_URL)||'';}
@@ -892,7 +892,9 @@ bootCareerVocab();</script>
   function basePath(){ return new URL('./',location.href).pathname; }
   async function registerMessagingSW(){
     if(!('serviceWorker' in navigator)) throw new Error('Service Worker is not supported');
-    return navigator.serviceWorker.register('./firebase-messaging-sw.js');
+    const reg=await navigator.serviceWorker.register('./firebase-messaging-sw.js',{scope:basePath()});
+    await navigator.serviceWorker.ready;
+    return reg;
   }
   function setButton(text,disabled){
     const b=document.getElementById('notificationBtn');
@@ -945,12 +947,14 @@ bootCareerVocab();</script>
     }catch(e){
       console.error('CareerVocab notification setup failed',e);
       setButton('Enable Notifications',false);
-      toast('Could not enable notifications yet');
+      const msg=(e&&e.message)?e.message:String(e||'Unknown error');
+      const name=(e&&e.name)?e.name:'';
+      console.error('CareerVocab FCM diagnostic:',{name,message:msg,permission:('Notification' in window?Notification.permission:'unsupported'),basePath:basePath(),serviceWorkerSupported:('serviceWorker' in navigator),pushSupported:('PushManager' in window)});
+      toast('Notification setup failed: '+(name?name+': ':'')+msg.slice(0,120));
     }
   };
   async function boot(){
     if('serviceWorker' in navigator){
-      navigator.serviceWorker.register('./service-worker.js').catch(()=>{});
       if(cfg.enabled) { try{ await initMessaging(); }catch(e){} }
     }
     if('Notification' in window && Notification.permission==='granted' && localStorage.getItem(key)){
