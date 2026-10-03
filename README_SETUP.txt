@@ -24,3 +24,6 @@ IMPORTANT
 CURRENT PLACEHOLDER
 onesignal-config.js contains: 1dc98c30-f536-48ae-abea-a8205747888d
 Replace that one value before uploading.
+
+ONE SIGNAL SUBSCRIPTION FIX (2026-10-03)
+This build only marks notifications enabled after OneSignal reports a real push subscription ID and token. Browser permission alone is not treated as a subscription.

@@ -893,6 +893,27 @@ bootCareerVocab();</script>
     const b=document.getElementById('notificationBtn');
     if(b){const strong=b.querySelector('strong');if(strong)strong.textContent=text;b.disabled=!!disabled;}
   }
+  async function getSubscriptionState(OneSignal){
+    const ps=OneSignal?.User?.pushSubscription;
+    if(!ps)return {id:null,token:null,optedIn:false};
+    let id=null,token=null,optedIn=false;
+    try{ id=ps.id||null; }catch(e){}
+    try{ token=ps.token||null; }catch(e){}
+    try{ optedIn=typeof ps.optedIn==='boolean'?ps.optedIn:false; }catch(e){}
+    try{ if(!id && typeof ps.getIdAsync==='function') id=await ps.getIdAsync(); }catch(e){}
+    try{ if(!token && typeof ps.getTokenAsync==='function') token=await ps.getTokenAsync(); }catch(e){}
+    try{ if(typeof ps.getOptedInAsync==='function') optedIn=await ps.getOptedInAsync(); }catch(e){}
+    return {id:id||null,token:token||null,optedIn:!!optedIn};
+  }
+  async function waitForRealSubscription(OneSignal,timeoutMs=12000){
+    const started=Date.now();
+    while(Date.now()-started<timeoutMs){
+      const st=await getSubscriptionState(OneSignal);
+      if(st.id && st.token && st.optedIn)return st;
+      await new Promise(r=>setTimeout(r,500));
+    }
+    return getSubscriptionState(OneSignal);
+  }
   function waitForSDK(){
     if(initPromise)return initPromise;
     initPromise=new Promise((resolve,reject)=>{
@@ -913,14 +934,11 @@ bootCareerVocab();</script>
           }
           finish(resolve,OneSignal);
         }catch(e){
-          // If another caller already initialized the SDK, reuse the live SDK instance.
           const msg=e&&e.message?String(e.message):String(e||'');
           if(/already initialized/i.test(msg)&&window.OneSignal){
             initialized=true;
             finish(resolve,window.OneSignal);
-          }else{
-            finish(reject,e);
-          }
+          }else finish(reject,e);
         }
       });
       setTimeout(()=>finish(reject,new Error('OneSignal SDK did not load')),15000);
@@ -933,19 +951,37 @@ bootCareerVocab();</script>
     try{
       if(!('Notification'in window))throw new Error('Notifications are not supported in this browser');
       const OneSignal=await waitForSDK();
-      if(OneSignal.Notifications.permission===true || Notification.permission==='granted'){
+      if(!OneSignal?.User?.pushSubscription)throw new Error('OneSignal push subscription API is unavailable');
+
+      let st=await getSubscriptionState(OneSignal);
+      if(st.id && st.token && st.optedIn){
         localStorage.setItem(key,'true');
         setButton('Notifications Enabled',true);
         toast('✓ Notifications are already enabled');
         return;
       }
-      await OneSignal.Notifications.requestPermission();
-      if(OneSignal.Notifications.permission!==true && Notification.permission!=='granted')throw new Error('Notification permission was not granted');
+
+      if(Notification.permission!=='granted'){
+        const granted=await OneSignal.Notifications.requestPermission();
+        if(!granted && Notification.permission!=='granted')throw new Error('Notification permission was not granted');
+      }
+
+      // Permission alone is not enough; explicitly opt the current OneSignal push subscription in.
+      if(typeof OneSignal.User.pushSubscription.optIn==='function'){
+        await OneSignal.User.pushSubscription.optIn();
+      }
+
+      st=await waitForRealSubscription(OneSignal,12000);
+      if(!(st.id && st.token && st.optedIn)){
+        throw new Error('Permission is allowed, but OneSignal subscription was not created yet');
+      }
+
       localStorage.setItem(key,'true');
       setButton('Notifications Enabled',true);
-      toast('✓ Notifications enabled');
+      toast('✓ Notifications enabled successfully');
     }catch(e){
       console.error('CareerVocab OneSignal setup failed',e);
+      localStorage.removeItem(key);
       setButton('Enable Notifications',false);
       const msg=e&&e.message?e.message:String(e||'Unknown error');
       toast('Notification setup failed: '+msg.slice(0,140));
@@ -954,10 +990,18 @@ bootCareerVocab();</script>
   async function boot(){
     try{
       const OneSignal=await waitForSDK();
-      if((OneSignal.Notifications.permission===true || Notification.permission==='granted')&&localStorage.getItem(key)){
+      const st=await getSubscriptionState(OneSignal);
+      if(st.id && st.token && st.optedIn){
+        localStorage.setItem(key,'true');
         setButton('Notifications Enabled',true);
+      }else{
+        localStorage.removeItem(key);
+        setButton('Enable Notifications',false);
       }
-    }catch(e){}
+    }catch(e){
+      localStorage.removeItem(key);
+      setButton('Enable Notifications',false);
+    }
   }
   window.addEventListener('load',boot);
 })();
