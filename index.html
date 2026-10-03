@@ -894,7 +894,7 @@ bootCareerVocab();</script>
     if(b){const strong=b.querySelector('strong');if(strong)strong.textContent=text;b.disabled=!!disabled;}
   }
   async function getSubscriptionState(OneSignal){
-    const ps=OneSignal?.User?.pushSubscription;
+    const ps=OneSignal?.User?.PushSubscription;
     if(!ps)return {id:null,token:null,optedIn:false};
     let id=null,token=null,optedIn=false;
     try{ id=ps.id||null; }catch(e){}
@@ -951,7 +951,7 @@ bootCareerVocab();</script>
     try{
       if(!('Notification'in window))throw new Error('Notifications are not supported in this browser');
       const OneSignal=await waitForSDK();
-      if(!OneSignal?.User?.pushSubscription)throw new Error('OneSignal push subscription API is unavailable');
+      if(!OneSignal?.User?.PushSubscription)throw new Error('OneSignal push subscription API is unavailable');
 
       let st=await getSubscriptionState(OneSignal);
       if(st.id && st.token && st.optedIn){
@@ -967,8 +967,8 @@ bootCareerVocab();</script>
       }
 
       // Permission alone is not enough; explicitly opt the current OneSignal push subscription in.
-      if(typeof OneSignal.User.pushSubscription.optIn==='function'){
-        await OneSignal.User.pushSubscription.optIn();
+      if(typeof OneSignal.User.PushSubscription.optIn==='function'){
+        await OneSignal.User.PushSubscription.optIn();
       }
 
       st=await waitForRealSubscription(OneSignal,12000);
