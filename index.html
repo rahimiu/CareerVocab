@@ -887,16 +887,18 @@ bootCareerVocab();</script>
   const cfg=window.CAREERVOCAB_ONESIGNAL||{};
   const key='cv_onesignal_enabled';
   let initialized=false;
+  let initPromise=null;
   function basePath(){return new URL('./',location.href).pathname;}
   function setButton(text,disabled){
     const b=document.getElementById('notificationBtn');
     if(b){const strong=b.querySelector('strong');if(strong)strong.textContent=text;b.disabled=!!disabled;}
   }
   function waitForSDK(){
-    window.OneSignalDeferred=window.OneSignalDeferred||[];
-    return new Promise((resolve,reject)=>{
-      let done=false;
-      const finish=()=>{if(!done){done=true;resolve(window.OneSignal);}};
+    if(initPromise)return initPromise;
+    initPromise=new Promise((resolve,reject)=>{
+      window.OneSignalDeferred=window.OneSignalDeferred||[];
+      let settled=false;
+      const finish=(fn,value)=>{if(!settled){settled=true;fn(value);}};
       window.OneSignalDeferred.push(async function(OneSignal){
         try{
           if(!cfg.appId||cfg.appId==='YOUR_ONESIGNAL_APP_ID')throw new Error('OneSignal App ID is not configured');
@@ -909,11 +911,21 @@ bootCareerVocab();</script>
             });
             initialized=true;
           }
-          finish();
-        }catch(e){if(!done){done=true;reject(e);}}
+          finish(resolve,OneSignal);
+        }catch(e){
+          // If another caller already initialized the SDK, reuse the live SDK instance.
+          const msg=e&&e.message?String(e.message):String(e||'');
+          if(/already initialized/i.test(msg)&&window.OneSignal){
+            initialized=true;
+            finish(resolve,window.OneSignal);
+          }else{
+            finish(reject,e);
+          }
+        }
       });
-      setTimeout(()=>{if(!done)reject(new Error('OneSignal SDK did not load'));},15000);
-    });
+      setTimeout(()=>finish(reject,new Error('OneSignal SDK did not load')),15000);
+    }).catch(e=>{initPromise=null;throw e;});
+    return initPromise;
   }
   window.enableCareerVocabNotifications=async function(){
     const b=document.getElementById('notificationBtn');
