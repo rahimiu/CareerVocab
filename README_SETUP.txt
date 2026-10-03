@@ -1,31 +1,26 @@
-CareerVocab PWA — Firebase Web Push + Apps Script token registration
+CareerVocab PWA — OneSignal Web Push (GitHub Pages)
 
-1. Upload this folder to an HTTPS static host such as GitHub Pages.
-2. Keep these files together at the app root:
-   /index.html
-   /manifest.json
-   /firebase-messaging-sw.js
-   /firebase-config.js
-3. Firebase web config and the public Web Push/VAPID key are already configured in firebase-config.js.
-4. In the app, open Profile → Enable Notifications and choose Allow in the browser permission prompt.
-5. The browser obtains an FCM token and sends it to the Apps Script backend. The backend stores it in the FcmTokens sheet.
-6. Do NOT put Firebase Admin/service-account private keys in frontend files or GitHub.
+WHAT CHANGED
+- Firebase Web Push code is removed from the frontend.
+- CareerVocab Profile → Enable Notifications now uses OneSignal Web Push.
+- Vocabulary, Jobs, Notices, ads, offline/PWA UI and existing Apps Script API are otherwise preserved from the supplied build.
 
-Backend setup:
-- Use CareerVocab_AppsScript_V18_2_FCM.gs.
-- Run setupSheets() once. It creates the FcmTokens sheet without deleting existing CareerVocab data.
-- In Apps Script Project Settings → Script Properties, add:
-  FCM_PROJECT_ID = careervocab-e34ba
-  FCM_CLIENT_EMAIL = <Firebase/Google service-account client email>
-  FCM_PRIVATE_KEY = <service-account private key, including \n line breaks or literal \\n>
-- The service account must have permission to send Firebase Cloud Messaging messages for this project.
-- Deploy/update the Apps Script Web App so the existing frontend API URL uses the updated code.
-- The existing ADMIN_KEY remains for admin operations; token registration is intentionally public so a browser does not need the admin key.
+ONE-TIME ONESIGNAL SETUP
+1. Create a OneSignal account and create a new Web app.
+2. Choose Custom Code / Web integration.
+3. Site URL: https://rahimiu.github.io/CareerVocab/
+4. Use the Web Push setup for that exact site.
+5. Copy the OneSignal App ID into onesignal-config.js, replacing 1dc98c30-f536-48ae-abea-a8205747888d.
+6. Keep OneSignalSDKWorker.js in the same GitHub Pages app folder as index.html.
+7. Upload the files to the CareerVocab GitHub repository and wait for GitHub Pages to publish.
+8. Open Profile → Enable Notifications and choose Allow.
 
-Manual test:
-- After a browser token appears in FcmTokens and the FCM_* Script Properties are configured, run sendTestPush() in Apps Script.
-- Expected result: the registered browser receives “CareerVocab Test — FCM Web Push is working.”
+IMPORTANT
+- Do not put a OneSignal REST API Key in GitHub/frontend files. Only the public App ID belongs in onesignal-config.js.
+- The worker is intentionally named OneSignalSDKWorker.js and is hosted beside index.html so its scope matches the /CareerVocab/ GitHub Pages path. OneSignal's current Web SDK is loaded from its CDN.
+- The existing Firebase/FCM Apps Script backend is not deleted. It is simply no longer used by this frontend for browser notification subscription.
+- If you later want Apps Script to send OneSignal notifications automatically, add the OneSignal REST API Key only to Apps Script Script Properties and use the OneSignal REST API from the server side.
 
-Important:
-- Web FCM and native Android FCM are separate. A simple Android WebView wrapper does not automatically provide native FCM.
-- GitHub Pages project path support is preserved with relative service-worker/config paths.
+CURRENT PLACEHOLDER
+onesignal-config.js contains: 1dc98c30-f536-48ae-abea-a8205747888d
+Replace that one value before uploading.

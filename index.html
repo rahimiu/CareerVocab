@@ -880,71 +880,60 @@ bootCareerVocab();</script>
   window.addEventListener('hashchange',checkAdminHash);
   setTimeout(checkAdminHash,100);
 })();</script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging-compat.js"></script>
-<script src="./firebase-config.js"></script>
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+<script src="./onesignal-config.js"></script>
 <script>
 (function(){
-  const cfg=window.CAREERVOCAB_FIREBASE||{};
-  const key='cv_fcm_token';
-  let messaging=null;
-  let swRegistration=null;
+  const cfg=window.CAREERVOCAB_ONESIGNAL||{};
+  const key='cv_onesignal_enabled';
+  let initialized=false;
   function basePath(){return new URL('./',location.href).pathname;}
   function setButton(text,disabled){
     const b=document.getElementById('notificationBtn');
     if(b){const strong=b.querySelector('strong');if(strong)strong.textContent=text;b.disabled=!!disabled;}
   }
-  function ready(){return !!(cfg.enabled&&cfg.apiKey&&cfg.projectId&&cfg.messagingSenderId&&cfg.appId&&cfg.vapidKey&&window.firebase);}
-  async function init(){
-    if(!ready())throw new Error('Firebase Messaging is not configured');
-    if(!firebase.apps.length){
-      firebase.initializeApp({apiKey:cfg.apiKey,authDomain:cfg.authDomain,projectId:cfg.projectId,storageBucket:cfg.storageBucket,messagingSenderId:cfg.messagingSenderId,appId:cfg.appId});
-    }
-    messaging=firebase.messaging();
-    try{messaging.onMessage(p=>{const n=p.notification||p.data||{};if(n.title)toast('🔔 '+n.title+(n.body?' — '+n.body:''));});}catch(e){}
-  }
-  async function registerSW(){
-    if(!('serviceWorker' in navigator))throw new Error('Service Worker is not supported');
-    const scope=basePath();
-    // Only the Firebase messaging worker is used for push. No second SW is registered.
-    const reg=await navigator.serviceWorker.register('./firebase-messaging-sw.js',{scope:scope,updateViaCache:'none'});
-    await navigator.serviceWorker.ready;
-    if(!reg.active)throw new Error('Firebase service worker is not active');
-    swRegistration=reg;
-    // Compat SDK supports binding messaging to an explicit worker registration.
-    if(typeof messaging.useServiceWorker==='function') messaging.useServiceWorker(reg);
-    return reg;
-  }
-  async function server(token){
-    const api=(window.CAREERVOCAB_CONFIG&&CAREERVOCAB_CONFIG.API_URL)||'';
-    if(!api||!token)return false;
-    try{
-      const res=await fetch(api,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'registerToken',token:token,platform:'web'})});
-      const data=await res.json();return !!data.ok;
-    }catch(e){console.warn('CareerVocab FCM token registration failed',e);return false;}
+  function waitForSDK(){
+    window.OneSignalDeferred=window.OneSignalDeferred||[];
+    return new Promise((resolve,reject)=>{
+      let done=false;
+      const finish=()=>{if(!done){done=true;resolve(window.OneSignal);}};
+      window.OneSignalDeferred.push(async function(OneSignal){
+        try{
+          if(!cfg.appId||cfg.appId==='YOUR_ONESIGNAL_APP_ID')throw new Error('OneSignal App ID is not configured');
+          if(!initialized){
+            await OneSignal.init({
+              appId:cfg.appId,
+              serviceWorkerPath:'./OneSignalSDKWorker.js',
+              serviceWorkerParam:{scope:basePath()},
+              allowLocalhostAsSecureOrigin:true
+            });
+            initialized=true;
+          }
+          finish();
+        }catch(e){if(!done){done=true;reject(e);}}
+      });
+      setTimeout(()=>{if(!done)reject(new Error('OneSignal SDK did not load'));},15000);
+    });
   }
   window.enableCareerVocabNotifications=async function(){
     const b=document.getElementById('notificationBtn');
     if(b){b.disabled=true;const strong=b.querySelector('strong');if(strong)strong.textContent='Enabling Notifications…';}
     try{
       if(!('Notification'in window))throw new Error('Notifications are not supported in this browser');
-      if(!('serviceWorker'in navigator))throw new Error('Service Worker is not supported');
-      if(!('PushManager'in window))throw new Error('Push API is not supported');
-      if(Notification.permission==='denied')throw new Error('Notifications are blocked in browser settings');
-      const permission=Notification.permission==='granted'?'granted':await Notification.requestPermission();
-      if(permission!=='granted')throw new Error('Notification permission was not granted');
-      await init();
-      const reg=await registerSW();
-      // Use the explicit registration only. Do not fall back to another worker.
-      const token=await messaging.getToken({vapidKey:cfg.vapidKey,serviceWorkerRegistration:reg});
-      if(!token)throw new Error('FCM returned no registration token');
-      localStorage.setItem(key,token);
-      localStorage.setItem('cv_fcm_permission','granted');
-      const synced=await server(token);
+      const OneSignal=await waitForSDK();
+      if(OneSignal.Notifications.permission===true || Notification.permission==='granted'){
+        localStorage.setItem(key,'true');
+        setButton('Notifications Enabled',true);
+        toast('✓ Notifications are already enabled');
+        return;
+      }
+      await OneSignal.Notifications.requestPermission();
+      if(OneSignal.Notifications.permission!==true && Notification.permission!=='granted')throw new Error('Notification permission was not granted');
+      localStorage.setItem(key,'true');
       setButton('Notifications Enabled',true);
-      toast(synced?'✓ Notifications enabled':'✓ Notifications enabled (server sync pending)');
+      toast('✓ Notifications enabled');
     }catch(e){
-      console.error('CareerVocab notification setup failed',e);
+      console.error('CareerVocab OneSignal setup failed',e);
       setButton('Enable Notifications',false);
       const msg=e&&e.message?e.message:String(e||'Unknown error');
       toast('Notification setup failed: '+msg.slice(0,140));
@@ -952,11 +941,9 @@ bootCareerVocab();</script>
   };
   async function boot(){
     try{
-      if(!ready())return;
-      await init();
-      if('Notification'in window&&Notification.permission==='granted'&&localStorage.getItem(key)){
+      const OneSignal=await waitForSDK();
+      if((OneSignal.Notifications.permission===true || Notification.permission==='granted')&&localStorage.getItem(key)){
         setButton('Notifications Enabled',true);
-        server(localStorage.getItem(key));
       }
     }catch(e){}
   }
