@@ -4,7 +4,6 @@ CareerVocab PWA — Firebase Web Push + Apps Script token registration
 2. Keep these files together at the app root:
    /index.html
    /manifest.json
-   /service-worker.js
    /firebase-messaging-sw.js
    /firebase-config.js
 3. Firebase web config and the public Web Push/VAPID key are already configured in firebase-config.js.

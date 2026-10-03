@@ -888,110 +888,77 @@ bootCareerVocab();</script>
   const cfg=window.CAREERVOCAB_FIREBASE||{};
   const key='cv_fcm_token';
   let messaging=null;
-  function basePath(){ return new URL('./',location.href).pathname; }
+  let swRegistration=null;
+  function basePath(){return new URL('./',location.href).pathname;}
   function setButton(text,disabled){
     const b=document.getElementById('notificationBtn');
-    if(b){const strong=b.querySelector('strong'); if(strong) strong.textContent=text; b.disabled=!!disabled;}
+    if(b){const strong=b.querySelector('strong');if(strong)strong.textContent=text;b.disabled=!!disabled;}
   }
-  function firebaseReady(){
-    return !!(cfg.enabled && cfg.apiKey && cfg.projectId && cfg.messagingSenderId && cfg.appId && cfg.vapidKey && window.firebase);
-  }
-  async function initMessaging(){
-    if(!firebaseReady()) throw new Error('Firebase Messaging is not configured');
+  function ready(){return !!(cfg.enabled&&cfg.apiKey&&cfg.projectId&&cfg.messagingSenderId&&cfg.appId&&cfg.vapidKey&&window.firebase);}
+  async function init(){
+    if(!ready())throw new Error('Firebase Messaging is not configured');
     if(!firebase.apps.length){
       firebase.initializeApp({apiKey:cfg.apiKey,authDomain:cfg.authDomain,projectId:cfg.projectId,storageBucket:cfg.storageBucket,messagingSenderId:cfg.messagingSenderId,appId:cfg.appId});
     }
     messaging=firebase.messaging();
-    try{ messaging.onMessage(payload=>{ const n=payload.notification||payload.data||{}; if(n.title) toast('🔔 '+n.title+(n.body?' — '+n.body:'')); }); }catch(e){}
-    return messaging;
+    try{messaging.onMessage(p=>{const n=p.notification||p.data||{};if(n.title)toast('🔔 '+n.title+(n.body?' — '+n.body:''));});}catch(e){}
   }
-  async function cleanupOldRegistrations(){
-    if(!('serviceWorker' in navigator)) throw new Error('Service Worker is not supported');
+  async function registerSW(){
+    if(!('serviceWorker' in navigator))throw new Error('Service Worker is not supported');
     const scope=basePath();
-    const regs=await navigator.serviceWorker.getRegistrations();
-    await Promise.all(regs.map(async r=>{
-      const sameScope=r.scope===new URL(scope,location.origin).href;
-      const script=r.active?.scriptURL||r.waiting?.scriptURL||r.installing?.scriptURL||'';
-      const oldPwa=script && script.includes('/service-worker.js');
-      if(sameScope && oldPwa) await r.unregister();
-    }));
-  }
-  async function registerMessagingSW(){
-    await cleanupOldRegistrations();
-    const reg=await navigator.serviceWorker.register('./firebase-messaging-sw.js',{scope:basePath(),updateViaCache:'none'});
-    await reg.update().catch(()=>{});
-    if(!reg.active){
-      await new Promise((resolve,reject)=>{
-        const w=reg.installing||reg.waiting;
-        if(!w){resolve();return;}
-        const timer=setTimeout(()=>resolve(),10000);
-        w.addEventListener('statechange',()=>{ if(w.state==='activated'){clearTimeout(timer);resolve();} if(w.state==='redundant'){clearTimeout(timer);reject(new Error('Firebase service worker became redundant'));} });
-      });
-    }
-    if(!reg.active) throw new Error('Firebase service worker is not active');
+    // Only the Firebase messaging worker is used for push. No second SW is registered.
+    const reg=await navigator.serviceWorker.register('./firebase-messaging-sw.js',{scope:scope,updateViaCache:'none'});
+    await navigator.serviceWorker.ready;
+    if(!reg.active)throw new Error('Firebase service worker is not active');
+    swRegistration=reg;
+    // Compat SDK supports binding messaging to an explicit worker registration.
+    if(typeof messaging.useServiceWorker==='function') messaging.useServiceWorker(reg);
     return reg;
   }
-  async function registerTokenOnServer(token){
+  async function server(token){
     const api=(window.CAREERVOCAB_CONFIG&&CAREERVOCAB_CONFIG.API_URL)||'';
-    if(!api||!token) return false;
+    if(!api||!token)return false;
     try{
       const res=await fetch(api,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'registerToken',token:token,platform:'web'})});
-      const data=await res.json();
-      return !!data.ok;
-    }catch(e){ console.warn('CareerVocab FCM token registration failed',e); return false; }
-  }
-  async function getTokenWithFallback(reg){
-    try{
-      return await messaging.getToken({vapidKey:cfg.vapidKey,serviceWorkerRegistration:reg});
-    }catch(first){
-      console.warn('CareerVocab explicit SW getToken failed; trying default registration',first);
-      return await messaging.getToken({vapidKey:cfg.vapidKey});
-    }
+      const data=await res.json();return !!data.ok;
+    }catch(e){console.warn('CareerVocab FCM token registration failed',e);return false;}
   }
   window.enableCareerVocabNotifications=async function(){
     const b=document.getElementById('notificationBtn');
     if(b){b.disabled=true;const strong=b.querySelector('strong');if(strong)strong.textContent='Enabling Notifications…';}
     try{
-      if(!('Notification' in window)) throw new Error('Notifications are not supported in this browser');
-      if(!('serviceWorker' in navigator)) throw new Error('Service Worker is not supported');
-      if(!('PushManager' in window)) throw new Error('Push API is not supported');
-      if(Notification.permission==='denied') throw new Error('Notifications are blocked in browser settings');
-
-      // Ask for browser permission before starting FCM registration.
+      if(!('Notification'in window))throw new Error('Notifications are not supported in this browser');
+      if(!('serviceWorker'in navigator))throw new Error('Service Worker is not supported');
+      if(!('PushManager'in window))throw new Error('Push API is not supported');
+      if(Notification.permission==='denied')throw new Error('Notifications are blocked in browser settings');
       const permission=Notification.permission==='granted'?'granted':await Notification.requestPermission();
-      if(permission!=='granted') throw new Error('Notification permission was not granted');
-
-      await initMessaging();
-      const registration=await registerMessagingSW();
-      const token=await getTokenWithFallback(registration);
-      if(!token) throw new Error('FCM returned no registration token');
-
+      if(permission!=='granted')throw new Error('Notification permission was not granted');
+      await init();
+      const reg=await registerSW();
+      // Use the explicit registration only. Do not fall back to another worker.
+      const token=await messaging.getToken({vapidKey:cfg.vapidKey,serviceWorkerRegistration:reg});
+      if(!token)throw new Error('FCM returned no registration token');
       localStorage.setItem(key,token);
       localStorage.setItem('cv_fcm_permission','granted');
-      const registered=await registerTokenOnServer(token);
+      const synced=await server(token);
       setButton('Notifications Enabled',true);
-      toast(registered?'✓ Notifications enabled':'✓ Notifications enabled (server sync pending)');
+      toast(synced?'✓ Notifications enabled':'✓ Notifications enabled (server sync pending)');
     }catch(e){
       console.error('CareerVocab notification setup failed',e);
       setButton('Enable Notifications',false);
       const msg=e&&e.message?e.message:String(e||'Unknown error');
-      const name=e&&e.name?e.name:'';
-      let subscription='unknown';
-      try{
-        const regs=await navigator.serviceWorker.getRegistrations();
-        const active=regs.find(r=>r.scope===new URL(basePath(),location.origin).href && r.active);
-        if(active&&active.pushManager){const sub=await active.pushManager.getSubscription();subscription=sub?'existing':'none';}
-      }catch(_){subscription='check-failed';}
-      console.error('CareerVocab FCM diagnostic',{name,message:msg,permission:('Notification'in window?Notification.permission:'unsupported'),basePath:basePath(),serviceWorkerSupported:('serviceWorker'in navigator),pushSupported:('PushManager'in window),subscription});
-      toast('Notification setup failed: '+(name?name+': ':'')+msg.slice(0,120));
+      toast('Notification setup failed: '+msg.slice(0,140));
     }
   };
   async function boot(){
-    try{ await initMessaging(); }catch(e){}
-    if('Notification'in window && Notification.permission==='granted' && localStorage.getItem(key)){
-      setButton('Notifications Enabled',true);
-      registerTokenOnServer(localStorage.getItem(key));
-    }
+    try{
+      if(!ready())return;
+      await init();
+      if('Notification'in window&&Notification.permission==='granted'&&localStorage.getItem(key)){
+        setButton('Notifications Enabled',true);
+        server(localStorage.getItem(key));
+      }
+    }catch(e){}
   }
   window.addEventListener('load',boot);
 })();
