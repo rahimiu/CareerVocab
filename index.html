@@ -885,126 +885,88 @@ bootCareerVocab();</script>
 <script>
 (function(){
   const cfg=window.CAREERVOCAB_ONESIGNAL||{};
-  const key='cv_onesignal_enabled';
-  let initialized=false;
   let initPromise=null;
-  function basePath(){return new URL('./',location.href).pathname;}
+  const key='cv_onesignal_enabled';
   function setButton(text,disabled){
     const b=document.getElementById('notificationBtn');
     if(b){const strong=b.querySelector('strong');if(strong)strong.textContent=text;b.disabled=!!disabled;}
-  }
-  async function getSubscriptionState(OneSignal){
-    const ps=OneSignal?.User?.PushSubscription;
-    if(!ps)return {id:null,token:null,optedIn:false};
-    let id=null,token=null,optedIn=false;
-    try{ id=ps.id||null; }catch(e){}
-    try{ token=ps.token||null; }catch(e){}
-    try{ optedIn=typeof ps.optedIn==='boolean'?ps.optedIn:false; }catch(e){}
-    try{ if(!id && typeof ps.getIdAsync==='function') id=await ps.getIdAsync(); }catch(e){}
-    try{ if(!token && typeof ps.getTokenAsync==='function') token=await ps.getTokenAsync(); }catch(e){}
-    try{ if(typeof ps.getOptedInAsync==='function') optedIn=await ps.getOptedInAsync(); }catch(e){}
-    return {id:id||null,token:token||null,optedIn:!!optedIn};
-  }
-  async function waitForRealSubscription(OneSignal,timeoutMs=12000){
-    const started=Date.now();
-    while(Date.now()-started<timeoutMs){
-      const st=await getSubscriptionState(OneSignal);
-      if(st.id && st.token && st.optedIn)return st;
-      await new Promise(r=>setTimeout(r,500));
-    }
-    return getSubscriptionState(OneSignal);
   }
   function waitForSDK(){
     if(initPromise)return initPromise;
     initPromise=new Promise((resolve,reject)=>{
       window.OneSignalDeferred=window.OneSignalDeferred||[];
       let settled=false;
-      const finish=(fn,value)=>{if(!settled){settled=true;fn(value);}};
+      const finish=(ok,v)=>{if(!settled){settled=true;ok?resolve(v):reject(v);}};
       window.OneSignalDeferred.push(async function(OneSignal){
         try{
-          if(!cfg.appId||cfg.appId==='YOUR_ONESIGNAL_APP_ID')throw new Error('OneSignal App ID is not configured');
-          if(!initialized){
+          if(!cfg.appId)throw new Error('OneSignal App ID is not configured');
+          // Initialize only from the user action path; never auto-prompt on page load.
+          if(!window.__CAREERVOCAB_ONESIGNAL_INITIALIZED){
             await OneSignal.init({
               appId:cfg.appId,
               serviceWorkerPath:'./OneSignalSDKWorker.js',
-              serviceWorkerParam:{scope:basePath()},
+              serviceWorkerParam:{scope:new URL('./',location.href).pathname},
               allowLocalhostAsSecureOrigin:true
             });
-            initialized=true;
+            window.__CAREERVOCAB_ONESIGNAL_INITIALIZED=true;
           }
-          finish(resolve,OneSignal);
+          if(!OneSignal.User?.pushSubscription)throw new Error('OneSignal push subscription API is unavailable after initialization');
+          finish(true,OneSignal);
         }catch(e){
-          const msg=e&&e.message?String(e.message):String(e||'');
-          if(/already initialized/i.test(msg)&&window.OneSignal){
-            initialized=true;
-            finish(resolve,window.OneSignal);
-          }else finish(reject,e);
+          if(/already initialized/i.test(String(e?.message||e)) && window.OneSignal){
+            finish(true,window.OneSignal);
+          }else finish(false,e);
         }
       });
-      setTimeout(()=>finish(reject,new Error('OneSignal SDK did not load')),15000);
-    }).catch(e=>{initPromise=null;throw e;});
+      setTimeout(()=>finish(false,new Error('OneSignal SDK did not load')),15000);
+    });
     return initPromise;
+  }
+  async function getState(OneSignal){
+    const ps=OneSignal?.User?.pushSubscription;
+    if(!ps) return {id:null,token:null,optedIn:false};
+    let id=null,token=null,optedIn=false;
+    try{id=typeof ps.getIdAsync==='function'?await ps.getIdAsync():ps.id||null;}catch(e){}
+    try{token=typeof ps.getTokenAsync==='function'?await ps.getTokenAsync():ps.token||null;}catch(e){}
+    try{optedIn=typeof ps.getOptedInAsync==='function'?await ps.getOptedInAsync():!!ps.optedIn;}catch(e){}
+    return {id,token,optedIn};
+  }
+  async function waitForSubscription(OneSignal,timeoutMs=15000){
+    const t=Date.now();
+    while(Date.now()-t<timeoutMs){
+      const s=await getState(OneSignal);
+      if(s.id&&s.token&&s.optedIn)return s;
+      await new Promise(r=>setTimeout(r,500));
+    }
+    return getState(OneSignal);
   }
   window.enableCareerVocabNotifications=async function(){
     const b=document.getElementById('notificationBtn');
     if(b){b.disabled=true;const strong=b.querySelector('strong');if(strong)strong.textContent='Enabling Notifications…';}
     try{
-      if(!('Notification'in window))throw new Error('Notifications are not supported in this browser');
+      if(!('Notification' in window))throw new Error('Notifications are not supported in this browser');
       const OneSignal=await waitForSDK();
-      if(!OneSignal?.User?.PushSubscription)throw new Error('OneSignal push subscription API is unavailable');
-
-      let st=await getSubscriptionState(OneSignal);
-      if(st.id && st.token && st.optedIn){
-        localStorage.setItem(key,'true');
-        setButton('Notifications Enabled',true);
-        toast('✓ Notifications are already enabled');
-        return;
+      const ps=OneSignal.User.pushSubscription;
+      if(!ps)throw new Error('OneSignal push subscription API is unavailable');
+      let s=await getState(OneSignal);
+      if(s.id&&s.token&&s.optedIn){
+        localStorage.setItem(key,'true');setButton('Notifications Enabled',true);toast('✓ Notifications are already enabled');return;
       }
-
-      if(Notification.permission!=='granted'){
-        const granted=await OneSignal.Notifications.requestPermission();
-        if(!granted && Notification.permission!=='granted')throw new Error('Notification permission was not granted');
-      }
-
-      // Permission alone is not enough; explicitly opt the current OneSignal push subscription in.
-      if(typeof OneSignal.User.PushSubscription.optIn==='function'){
-        await OneSignal.User.PushSubscription.optIn();
-      }
-
-      st=await waitForRealSubscription(OneSignal,12000);
-      if(!(st.id && st.token && st.optedIn)){
-        throw new Error('Permission is allowed, but OneSignal subscription was not created yet');
-      }
-
-      localStorage.setItem(key,'true');
-      setButton('Notifications Enabled',true);
-      toast('✓ Notifications enabled successfully');
+      await ps.optIn();
+      s=await waitForSubscription(OneSignal);
+      if(!(s.id&&s.token&&s.optedIn))throw new Error('Permission was allowed, but OneSignal subscription is not ready yet');
+      localStorage.setItem(key,'true');setButton('Notifications Enabled',true);toast('✓ Notifications enabled successfully');
     }catch(e){
       console.error('CareerVocab OneSignal setup failed',e);
-      localStorage.removeItem(key);
-      setButton('Enable Notifications',false);
-      const msg=e&&e.message?e.message:String(e||'Unknown error');
-      toast('Notification setup failed: '+msg.slice(0,140));
+      localStorage.removeItem(key);setButton('Enable Notifications',false);
+      toast('Notification setup failed: '+String(e?.message||e).slice(0,160));
     }
   };
-  async function boot(){
-    try{
-      const OneSignal=await waitForSDK();
-      const st=await getSubscriptionState(OneSignal);
-      if(st.id && st.token && st.optedIn){
-        localStorage.setItem(key,'true');
-        setButton('Notifications Enabled',true);
-      }else{
-        localStorage.removeItem(key);
-        setButton('Enable Notifications',false);
-      }
-    }catch(e){
-      localStorage.removeItem(key);
-      setButton('Enable Notifications',false);
-    }
-  }
-  window.addEventListener('load',boot);
+  // Do not initialize OneSignal on page load. Only reflect a known saved success.
+  window.addEventListener('load',()=>{setButton(localStorage.getItem(key)==='true'?'Notifications Enabled':'Enable Notifications',localStorage.getItem(key)==='true');});
 })();
 </script>
+<script src="./onesignal-config.js"></script>
+
 </body>
 </html>
